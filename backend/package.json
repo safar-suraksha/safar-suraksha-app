@@ -12,7 +12,6 @@
     "cors": "^2.8.5",
     "dayjs": "^1.11.18",
     "dotenv": "^17.2.2",
-    "ethers": "^6.15.0",
     "express": "^5.1.0",
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.2",
@@ -26,5 +25,10 @@
     "uuid": "^11.1.0",
     "winston": "^3.17.0",
     "zod": "^4.1.5"
+  },
+  "devDependencies": {
+    "@nomiclabs/hardhat-ethers": "^2.2.3",
+    "ethers": "^6.15.0",
+    "hardhat": "^3.0.4"
   }
 }
