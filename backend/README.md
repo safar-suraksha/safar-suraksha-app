@@ -3,13 +3,13 @@
 To install dependencies:
 
 ```bash
-bun install
+pnpm install
 ```
 
 To run:
 
 ```bash
-bun run dev
+pnpm run dev
 ```
 
 ## API Endpoints
