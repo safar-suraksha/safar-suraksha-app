@@ -19,7 +19,7 @@ const TouristIDSchema = new Schema({
         {
             type: String
         }
-    ], // e.g., ["Delhi", "Agra", "Jaipur"]
+    ], // ex., ["Delhi", "Agra", "Jaipur"]
     blockchainHash: {
         type: String,
         required: true
