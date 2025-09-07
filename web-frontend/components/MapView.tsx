@@ -5,6 +5,11 @@ import { motion } from 'motion/react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { 
   MapPin, 
   Users, 
@@ -13,8 +18,13 @@ import {
   Navigation,
   Zap,
   Eye,
-  Filter
+  Filter,
+  Plus,
+  Camera,
+  Phone
 } from 'lucide-react';
+import { apiService } from '@/services/api';
+import { showSuccess, showError, showLoading, dismissToast } from '@/services/toast';
 
 interface MapMarker {
   id: string;
@@ -37,6 +47,82 @@ export function MapView() {
   const [selectedMarker, setSelectedMarker] = useState<MapMarker | null>(null);
   const [filterType, setFilterType] = useState<string>('all');
   const [isLive, setIsLive] = useState(true);
+  const [markers, setMarkers] = useState<MapMarker[]>(mockMarkers);
+  const [officers, setOfficers] = useState<any[]>([]);
+  const [isCreateAlertOpen, setIsCreateAlertOpen] = useState(false);
+  const [isDispatchOpen, setIsDispatchOpen] = useState(false);
+  const [isCameraViewOpen, setIsCameraViewOpen] = useState(false);
+
+  useEffect(() => {
+    loadMapData();
+    loadOfficers();
+  }, []);
+
+  const loadMapData = async () => {
+    try {
+      const mapMarkers = await apiService.getMapMarkers(filterType);
+      setMarkers(mapMarkers);
+    } catch (error) {
+      console.error('Failed to load map data:', error);
+    }
+  };
+
+  const loadOfficers = async () => {
+    try {
+      const officersData = await apiService.getOfficers();
+      setOfficers(officersData);
+    } catch (error) {
+      console.error('Failed to load officers:', error);
+    }
+  };
+
+  const handleCreateAlert = async (alertData: any) => {
+    const loadingId = showLoading('Creating alert...');
+    try {
+      await apiService.createSOSAlert(alertData);
+      showSuccess('Alert created successfully', 'Emergency responders have been notified');
+      setIsCreateAlertOpen(false);
+      loadMapData();
+    } catch (error) {
+      showError('Failed to create alert', 'Please try again');
+    } finally {
+      dismissToast(loadingId);
+    }
+  };
+
+  const handleDispatchOfficer = async (officerId: string, location: string) => {
+    const loadingId = showLoading('Dispatching officer...');
+    try {
+      const officer = officers.find(o => o.id === officerId);
+      await apiService.dispatchOfficer(officerId, selectedMarker?.id, location);
+      showSuccess('Officer dispatched', `${officer?.name} is en route to location`);
+      setIsDispatchOpen(false);
+      loadMapData();
+      loadOfficers();
+    } catch (error) {
+      showError('Failed to dispatch officer', 'Please try again');
+    } finally {
+      dismissToast(loadingId);
+    }
+  };
+
+  const handleNavigateToLocation = (marker: MapMarker) => {
+    showInfo('Navigation activated', `Directing to ${marker.label} location`);
+    // In a real app, this would integrate with mapping services
+  };
+
+  const handleViewAllCameras = async () => {
+    const loadingId = showLoading('Loading camera feeds...');
+    try {
+      const cameras = await apiService.getCameras();
+      setIsCameraViewOpen(true);
+      showSuccess('Camera feeds loaded', `${cameras.length} cameras available`);
+    } catch (error) {
+      showError('Failed to load cameras', 'Please try again');
+    } finally {
+      dismissToast(loadingId);
+    }
+  };
 
   const getMarkerIcon = (type: string) => {
     switch (type) {
@@ -56,9 +142,11 @@ export function MapView() {
     return 'text-white';
   };
 
+
+
   const filteredMarkers = filterType === 'all' 
-    ? mockMarkers 
-    : mockMarkers.filter(marker => marker.type === filterType);
+    ? markers 
+    : markers.filter(marker => marker.type === filterType);
 
   return (
     <div className="p-6 grid grid-cols-1 lg:grid-cols-4 gap-6 h-full">
@@ -259,7 +347,12 @@ export function MapView() {
                 {selectedMarker.info && (
                   <p className="text-sm">{selectedMarker.info}</p>
                 )}
-                <Button className="w-full hover-glow" size="sm">
+                <Button 
+                  className="w-full hover-glow" 
+                  size="sm"
+                  onClick={() => handleNavigateToLocation(selectedMarker)}
+                >
+                  <Navigation className="w-4 h-4 mr-2" />
                   Navigate to Location
                 </Button>
               </CardContent>
@@ -278,22 +371,273 @@ export function MapView() {
               <CardTitle className="text-lg">Quick Actions</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <Button className="w-full hover-glow" variant="outline">
-                <AlertTriangle className="w-4 h-4 mr-2" />
-                Create Alert
-              </Button>
-              <Button className="w-full hover-glow" variant="outline">
-                <Shield className="w-4 h-4 mr-2" />
-                Dispatch Officer
-              </Button>
-              <Button className="w-full hover-glow" variant="outline">
+              <Dialog open={isCreateAlertOpen} onOpenChange={setIsCreateAlertOpen}>
+                <DialogTrigger asChild>
+                  <Button className="w-full hover-glow" variant="outline">
+                    <AlertTriangle className="w-4 h-4 mr-2" />
+                    Create Alert
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="glass-strong">
+                  <DialogHeader>
+                    <DialogTitle>Create Emergency Alert</DialogTitle>
+                  </DialogHeader>
+                  <CreateAlertForm onSubmit={handleCreateAlert} />
+                </DialogContent>
+              </Dialog>
+
+              <Dialog open={isDispatchOpen} onOpenChange={setIsDispatchOpen}>
+                <DialogTrigger asChild>
+                  <Button className="w-full hover-glow" variant="outline">
+                    <Shield className="w-4 h-4 mr-2" />
+                    Dispatch Officer
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="glass-strong">
+                  <DialogHeader>
+                    <DialogTitle>Dispatch Officer</DialogTitle>
+                  </DialogHeader>
+                  <DispatchOfficerForm officers={officers} onSubmit={handleDispatchOfficer} />
+                </DialogContent>
+              </Dialog>
+
+              <Button 
+                className="w-full hover-glow" 
+                variant="outline"
+                onClick={handleViewAllCameras}
+              >
                 <Eye className="w-4 h-4 mr-2" />
                 View All Cameras
               </Button>
+
+              <Dialog open={isCameraViewOpen} onOpenChange={setIsCameraViewOpen}>
+                <DialogContent className="glass-strong max-w-4xl">
+                  <DialogHeader>
+                    <DialogTitle>CCTV Camera Network</DialogTitle>
+                  </DialogHeader>
+                  <CameraGrid />
+                </DialogContent>
+              </Dialog>
             </CardContent>
           </Card>
         </motion.div>
       </div>
+    </div>
+  );
+}
+
+// Create Alert Form Component
+function CreateAlertForm({ onSubmit }: { onSubmit: (data: any) => void }) {
+  const [formData, setFormData] = useState({
+    type: 'emergency',
+    priority: 'high',
+    location: '',
+    coordinates: { lat: 40.7589, lng: -73.9851 },
+    description: '',
+    touristInfo: {
+      name: '',
+      phone: '',
+      group: ''
+    }
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSubmit(formData);
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="type">Alert Type</Label>
+          <Select value={formData.type} onValueChange={(value) => setFormData({...formData, type: value})}>
+            <SelectTrigger className="glass">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className="glass-strong">
+              <SelectItem value="medical">Medical Emergency</SelectItem>
+              <SelectItem value="safety">Safety Concern</SelectItem>
+              <SelectItem value="lost">Lost Person</SelectItem>
+              <SelectItem value="emergency">General Emergency</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <Label htmlFor="priority">Priority</Label>
+          <Select value={formData.priority} onValueChange={(value) => setFormData({...formData, priority: value})}>
+            <SelectTrigger className="glass">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className="glass-strong">
+              <SelectItem value="critical">Critical</SelectItem>
+              <SelectItem value="high">High</SelectItem>
+              <SelectItem value="medium">Medium</SelectItem>
+              <SelectItem value="low">Low</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+      
+      <div>
+        <Label htmlFor="location">Location</Label>
+        <Input
+          id="location"
+          className="glass"
+          value={formData.location}
+          onChange={(e) => setFormData({...formData, location: e.target.value})}
+          placeholder="Enter location details"
+          required
+        />
+      </div>
+
+      <div>
+        <Label htmlFor="description">Description</Label>
+        <Textarea
+          id="description"
+          className="glass"
+          value={formData.description}
+          onChange={(e) => setFormData({...formData, description: e.target.value})}
+          placeholder="Describe the emergency situation"
+          rows={3}
+          required
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label>Tourist Information (if applicable)</Label>
+        <div className="grid grid-cols-2 gap-2">
+          <Input
+            className="glass"
+            value={formData.touristInfo.name}
+            onChange={(e) => setFormData({...formData, touristInfo: {...formData.touristInfo, name: e.target.value}})}
+            placeholder="Tourist name"
+          />
+          <Input
+            className="glass"
+            value={formData.touristInfo.phone}
+            onChange={(e) => setFormData({...formData, touristInfo: {...formData.touristInfo, phone: e.target.value}})}
+            placeholder="Phone number"
+          />
+        </div>
+      </div>
+
+      <Button type="submit" className="w-full neon-glow">
+        <AlertTriangle className="w-4 h-4 mr-2" />
+        Create Alert
+      </Button>
+    </form>
+  );
+}
+
+// Dispatch Officer Form Component
+function DispatchOfficerForm({ officers, onSubmit }: { officers: any[], onSubmit: (officerId: string, location: string) => void }) {
+  const [selectedOfficer, setSelectedOfficer] = useState('');
+  const [location, setLocation] = useState('');
+
+  const availableOfficers = officers.filter(officer => 
+    officer.status === 'available' || officer.status === 'patrol'
+  );
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (selectedOfficer && location) {
+      onSubmit(selectedOfficer, location);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <Label htmlFor="officer">Select Officer</Label>
+        <Select value={selectedOfficer} onValueChange={setSelectedOfficer}>
+          <SelectTrigger className="glass">
+            <SelectValue placeholder="Choose an available officer" />
+          </SelectTrigger>
+          <SelectContent className="glass-strong">
+            {availableOfficers.map((officer) => (
+              <SelectItem key={officer.id} value={officer.id}>
+                {officer.name} - {officer.badge} ({officer.status})
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div>
+        <Label htmlFor="location">Destination</Label>
+        <Input
+          id="location"
+          className="glass"
+          value={location}  
+          onChange={(e) => setLocation(e.target.value)}
+          placeholder="Enter dispatch location"
+          required
+        />
+      </div>
+
+      <Button type="submit" className="w-full neon-glow" disabled={!selectedOfficer || !location}>
+        <Shield className="w-4 h-4 mr-2" />
+        Dispatch Officer
+      </Button>
+    </form>
+  );
+}
+
+// Camera Grid Component
+function CameraGrid() {
+  const [cameras, setCameras] = useState<any[]>([]);
+
+  useEffect(() => {
+    loadCameras();
+  }, []);
+
+  const loadCameras = async () => {
+    try {
+      const cameraData = await apiService.getCameras();
+      setCameras(cameraData);
+    } catch (error) {
+      console.error('Failed to load cameras:', error);
+    }
+  };
+
+  const handleViewCamera = async (cameraId: string) => {
+    try {
+      const response = await apiService.viewCamera(cameraId);
+      showInfo('Camera feed opened', 'Connecting to live stream...');
+    } catch (error) {
+      showError('Failed to connect to camera', 'Stream may be unavailable');
+    }
+  };
+
+  return (
+    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 max-h-96 overflow-y-auto">
+      {cameras.map((camera) => (
+        <Card key={camera.id} className="glass hover-glow">
+          <CardContent className="p-4">
+            <div className="aspect-video bg-black/50 rounded mb-3 flex items-center justify-center">
+              <Camera className="w-8 h-8 text-muted-foreground" />
+            </div>
+            <div className="space-y-2">
+              <p className="font-medium text-sm">{camera.name}</p>
+              <p className="text-xs text-muted-foreground">{camera.location}</p>
+              <Badge variant={camera.status === 'online' ? 'default' : 'secondary'} className="text-xs">
+                {camera.status}
+              </Badge>
+              <Button 
+                size="sm" 
+                className="w-full" 
+                variant="outline"
+                onClick={() => handleViewCamera(camera.id)}
+                disabled={camera.status !== 'online'}
+              >
+                <Eye className="w-3 h-3 mr-1" />
+                View Live
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
     </div>
   );
 }

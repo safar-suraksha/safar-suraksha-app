@@ -268,7 +268,7 @@ export function Settings() {
                     </div>
                     <Switch
                       checked={notifications.sosAlerts}
-                      onCheckedChange={(checked: any) => 
+                      onCheckedChange={(checked) => 
                         setNotifications({ ...notifications, sosAlerts: checked })
                       }
                     />
@@ -281,7 +281,7 @@ export function Settings() {
                     </div>
                     <Switch
                       checked={notifications.newTourists}
-                      onCheckedChange={(checked: any) => 
+                      onCheckedChange={(checked) => 
                         setNotifications({ ...notifications, newTourists: checked })
                       }
                     />
@@ -294,7 +294,7 @@ export function Settings() {
                     </div>
                     <Switch
                       checked={notifications.systemUpdates}
-                      onCheckedChange={(checked: any) => 
+                      onCheckedChange={(checked) => 
                         setNotifications({ ...notifications, systemUpdates: checked })
                       }
                     />
@@ -307,7 +307,7 @@ export function Settings() {
                     </div>
                     <Switch
                       checked={notifications.emergencyOnly}
-                      onCheckedChange={(checked: any) => 
+                      onCheckedChange={(checked) => 
                         setNotifications({ ...notifications, emergencyOnly: checked })
                       }
                     />
@@ -326,7 +326,7 @@ export function Settings() {
                       </div>
                       <Switch
                         checked={notifications.pushNotifications}
-                        onCheckedChange={(checked: any) => 
+                        onCheckedChange={(checked) => 
                           setNotifications({ ...notifications, pushNotifications: checked })
                         }
                       />
@@ -338,7 +338,7 @@ export function Settings() {
                       </div>
                       <Switch
                         checked={notifications.soundAlerts}
-                        onCheckedChange={(checked: any) => 
+                        onCheckedChange={(checked) => 
                           setNotifications({ ...notifications, soundAlerts: checked })
                         }
                       />
@@ -350,7 +350,7 @@ export function Settings() {
                       </div>
                       <Switch
                         checked={notifications.emailNotifications}
-                        onCheckedChange={(checked: any) => 
+                        onCheckedChange={(checked) => 
                           setNotifications({ ...notifications, emailNotifications: checked })
                         }
                       />
@@ -384,7 +384,7 @@ export function Settings() {
                     </div>
                     <Switch
                       checked={security.twoFactorAuth}
-                      onCheckedChange={(checked: any) => 
+                      onCheckedChange={(checked) => 
                         setSecurity({ ...security, twoFactorAuth: checked })
                       }
                     />
@@ -397,7 +397,7 @@ export function Settings() {
                     </div>
                     <Switch
                       checked={security.biometricLogin}
-                      onCheckedChange={(checked: any) => 
+                      onCheckedChange={(checked) => 
                         setSecurity({ ...security, biometricLogin: checked })
                       }
                     />
@@ -410,7 +410,7 @@ export function Settings() {
                     </div>
                     <Switch
                       checked={security.autoLock}
-                      onCheckedChange={(checked: any) => 
+                      onCheckedChange={(checked) => 
                         setSecurity({ ...security, autoLock: checked })
                       }
                     />
@@ -423,7 +423,7 @@ export function Settings() {
                     </div>
                     <Switch
                       checked={security.blockchainSync}
-                      onCheckedChange={(checked: any) => 
+                      onCheckedChange={(checked) => 
                         setSecurity({ ...security, blockchainSync: checked })
                       }
                     />
@@ -472,7 +472,7 @@ export function Settings() {
                     </div>
                     <Switch
                       checked={display.darkMode}
-                      onCheckedChange={(checked: any) => 
+                      onCheckedChange={(checked) => 
                         setDisplay({ ...display, darkMode: checked })
                       }
                     />
@@ -485,7 +485,7 @@ export function Settings() {
                     </div>
                     <Switch
                       checked={display.neonAccents}
-                      onCheckedChange={(checked: any) => 
+                      onCheckedChange={(checked) => 
                         setDisplay({ ...display, neonAccents: checked })
                       }
                     />
@@ -498,7 +498,7 @@ export function Settings() {
                     </div>
                     <Switch
                       checked={display.glassEffect}
-                      onCheckedChange={(checked: any) => 
+                      onCheckedChange={(checked) => 
                         setDisplay({ ...display, glassEffect: checked })
                       }
                     />
@@ -511,7 +511,7 @@ export function Settings() {
                     </div>
                     <Switch
                       checked={display.animations}
-                      onCheckedChange={(checked: any) => 
+                      onCheckedChange={(checked) => 
                         setDisplay({ ...display, animations: checked })
                       }
                     />
@@ -524,7 +524,7 @@ export function Settings() {
                     </div>
                     <Switch
                       checked={display.highContrast}
-                      onCheckedChange={(checked: any) => 
+                      onCheckedChange={(checked) => 
                         setDisplay({ ...display, highContrast: checked })
                       }
                     />

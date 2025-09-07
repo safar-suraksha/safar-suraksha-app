@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,7 +15,8 @@ import {
   CheckCircle,
   X,
   MoreHorizontal,
-  Filter
+  Filter,
+  UserCheck
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -23,6 +24,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { apiService } from '@/services/api';
+import { showSuccess, showError, showLoading, dismissToast, showInfo } from '@/services/toast';
 
 interface SOSAlert {
   id: string;
@@ -90,6 +93,61 @@ export function SOSAlerts() {
   const [selectedAlert, setSelectedAlert] = useState<SOSAlert | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
+  const [alerts, setAlerts] = useState<SOSAlert[]>(mockAlerts);
+
+  useEffect(() => {
+    loadAlerts();
+  }, [statusFilter, priorityFilter]);
+
+  const loadAlerts = async () => {
+    try {
+      const alertsData = await apiService.getSOSAlerts(
+        statusFilter !== 'all' ? statusFilter : undefined,
+        priorityFilter !== 'all' ? priorityFilter : undefined
+      );
+      setAlerts(alertsData);
+    } catch (error) {
+      console.error('Failed to load alerts:', error);
+      // Fallback to mock data if API fails
+    }
+  };
+
+  const handleCallTourist = async (phoneNumber: string, touristName: string) => {
+    const loadingId = showLoading('Initiating call...');
+    try {
+      await apiService.makeCall(phoneNumber);
+      showSuccess('Call initiated', `Connecting to ${touristName} at ${phoneNumber}`);
+    } catch (error) {
+      showError('Call failed', 'Unable to connect to tourist');
+    } finally {
+      dismissToast(loadingId);
+    }
+  };
+
+  const handleViewOnMap = (alert: SOSAlert) => {
+    showInfo('Opening map view', `Showing ${alert.location} on live map`);
+    // In a real app, this would navigate to map view with specific location
+  };
+
+  const handleMarkResolved = async (alertId: string) => {
+    const loadingId = showLoading('Resolving alert...');
+    try {
+      await apiService.resolveSOSAlert(alertId);
+      showSuccess('Alert resolved', 'Emergency has been marked as resolved');
+      loadAlerts();
+      setSelectedAlert(null);
+    } catch (error) {
+      showError('Failed to resolve alert', 'Please try again');
+    } finally {
+      dismissToast(loadingId);
+    }
+  };
+
+  const handleAssignOfficer = async (alertId: string) => {
+    // This would open a dialog to select an officer
+    showInfo('Officer assignment', 'Opening officer selection dialog...');
+    // Implementation would involve a dialog similar to the one in MapView
+  };
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
@@ -120,21 +178,17 @@ export function SOSAlerts() {
     }
   };
 
-  const filteredAlerts = mockAlerts.filter(alert => {
-    const statusMatch = statusFilter === 'all' || alert.status === statusFilter;
-    const priorityMatch = priorityFilter === 'all' || alert.priority === priorityFilter;
-    return statusMatch && priorityMatch;
-  });
+  const filteredAlerts = alerts;
 
   return (
     <div className="p-6 space-y-6">
       {/* Header Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {[
-          { label: 'Active Alerts', value: mockAlerts.filter(a => a.status === 'active').length, color: 'text-red-400' },
-          { label: 'Responding', value: mockAlerts.filter(a => a.status === 'responding').length, color: 'text-blue-400' },
-          { label: 'Resolved Today', value: mockAlerts.filter(a => a.status === 'resolved').length, color: 'text-green-400' },
-          { label: 'Critical Priority', value: mockAlerts.filter(a => a.priority === 'critical').length, color: 'text-orange-400' },
+          { label: 'Active Alerts', value: alerts.filter(a => a.status === 'active').length, color: 'text-red-400' },
+          { label: 'Responding', value: alerts.filter(a => a.status === 'responding').length, color: 'text-blue-400' },
+          { label: 'Resolved Today', value: alerts.filter(a => a.status === 'resolved').length, color: 'text-green-400' },
+          { label: 'Critical Priority', value: alerts.filter(a => a.priority === 'critical').length, color: 'text-orange-400' },
         ].map((stat, index) => (
           <motion.div
             key={stat.label}
@@ -285,20 +339,32 @@ export function SOSAlerts() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent className="glass-strong">
-                          <DropdownMenuItem className="hover:bg-accent/20">
+                          <DropdownMenuItem 
+                            className="hover:bg-accent/20"
+                            onClick={() => handleCallTourist(alert.touristInfo.phone, alert.touristInfo.name)}
+                          >
                             <Phone className="w-4 h-4 mr-2" />
                             Call Tourist
                           </DropdownMenuItem>
-                          <DropdownMenuItem className="hover:bg-accent/20">
+                          <DropdownMenuItem 
+                            className="hover:bg-accent/20"
+                            onClick={() => handleAssignOfficer(alert.id)}
+                          >
                             <Shield className="w-4 h-4 mr-2" />
                             Assign Officer
                           </DropdownMenuItem>
-                          <DropdownMenuItem className="hover:bg-accent/20">
+                          <DropdownMenuItem 
+                            className="hover:bg-accent/20"
+                            onClick={() => handleViewOnMap(alert)}
+                          >
                             <MapPin className="w-4 h-4 mr-2" />
                             View on Map
                           </DropdownMenuItem>
                           {alert.status !== 'resolved' && (
-                            <DropdownMenuItem className="hover:bg-green-500/20 text-green-400">
+                            <DropdownMenuItem 
+                              className="hover:bg-green-500/20 text-green-400"
+                              onClick={() => handleMarkResolved(alert.id)}
+                            >
                               <CheckCircle className="w-4 h-4 mr-2" />
                               Mark Resolved
                             </DropdownMenuItem>
