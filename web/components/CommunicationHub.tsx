@@ -1,12 +1,14 @@
+"use client"
+
 import { useState } from 'react';
 import { motion } from 'motion/react';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Button } from '../ui/button';
-import { Badge } from '../ui/badge';
-import { Input } from '../ui/input';
-import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
-import { ScrollArea } from '../ui/scroll-area';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   MessageCircle, 
   Video, 
@@ -183,7 +185,7 @@ export function CommunicationHub() {
             <Card className="glass h-full">
               <CardHeader className="pb-4">
                 <CardTitle className="flex items-center space-x-2 text-lg">
-                  <Users className="w-5 h-5 neon-text" />
+                  <Users className="w-5 h-5 text-foreground" />
                   <span>Active Contacts</span>
                 </CardTitle>
                 <div className="relative">
@@ -363,7 +365,7 @@ export function CommunicationHub() {
               <Card className="glass h-full">
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-2">
-                    <Video className="w-5 h-5 neon-text" />
+                    <Video className="w-5 h-5 text-foreground" />
                     <span>Video Conference</span>
                   </CardTitle>
                 </CardHeader>
@@ -374,9 +376,9 @@ export function CommunicationHub() {
                       <div className="absolute inset-0 flex items-center justify-center">
                         <div className="text-center">
                           <div className="w-32 h-32 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-4">
-                            <Video className="w-16 h-16 neon-text" />
+                            <Video className="w-16 h-16 text-foreground" />
                           </div>
-                          <h3 className="text-xl font-bold neon-text">Officer Martinez</h3>
+                          <h3 className="text-xl font-bold text-foreground">Officer Martinez</h3>
                           <p className="text-muted-foreground">Emergency Response Call</p>
                           <div className="flex items-center justify-center space-x-2 mt-4">
                             <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
@@ -486,7 +488,7 @@ export function CommunicationHub() {
             <CardContent>
               <div className="text-center py-12">
                 <AlertTriangle className="w-24 h-24 mx-auto mb-6 text-red-400" />
-                <h3 className="text-2xl font-bold mb-4 neon-text">Emergency Communications</h3>
+                <h3 className="text-2xl font-bold mb-4 text-foreground">Emergency Communications</h3>
                 <p className="text-muted-foreground mb-6 max-w-md mx-auto">
                   This channel is reserved for emergency communications between officers, 
                   dispatch, and emergency services. All messages are logged and monitored.

@@ -1,3 +1,5 @@
+"use client"
+
 import { useState } from 'react';
 import { motion } from 'motion/react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -172,7 +174,7 @@ export function BlockchainAudit() {
                                 <CardContent className="p-4">
                                     <div className="flex items-center justify-between">
                                         <div>
-                                            <p className="text-2xl font-bold neon-text">{stat.value}</p>
+                                            <p className="text-2xl font-bold text-foreground">{stat.value}</p>
                                             <p className="text-sm text-muted-foreground">{stat.label}</p>
                                             <div className="flex items-center mt-1">
                                                 <TrendingUp className={`w-3 h-3 mr-1 ${stat.change.startsWith('+') ? 'text-green-400' : 'text-red-400'}`} />
@@ -217,7 +219,7 @@ export function BlockchainAudit() {
                                         />
                                     </div>
                                     <div className="flex items-center space-x-2">
-                                        <Filter className="w-5 h-5 neon-text" />
+                                        <Filter className="w-5 h-5 text-foreground" />
                                         <select
                                             value={statusFilter}
                                             onChange={(e) => setStatusFilter(e.target.value)}
@@ -247,7 +249,7 @@ export function BlockchainAudit() {
                         <Card className="glass hover-glow">
                             <CardHeader>
                                 <CardTitle className="flex items-center space-x-2">
-                                    <Link className="w-5 h-5 neon-text" />
+                                    <Link className="w-5 h-5 text-foreground" />
                                     <span>Blockchain Transaction Log</span>
                                     <Badge className="neon-glow">{filteredTransactions.length} transactions</Badge>
                                 </CardTitle>
@@ -301,7 +303,7 @@ export function BlockchainAudit() {
                                                     </TableCell>
                                                     <TableCell>
                                                         <div className="flex items-center space-x-2">
-                                                            <ActionIcon className="w-4 h-4 neon-text" />
+                                                            <ActionIcon className="w-4 h-4 text-foreground" />
                                                             <span className="text-sm">{tx.action}</span>
                                                         </div>
                                                     </TableCell>
@@ -353,7 +355,7 @@ export function BlockchainAudit() {
                             <Card className="glass hover-glow">
                                 <CardHeader>
                                     <CardTitle className="flex items-center space-x-2">
-                                        <TrendingUp className="w-5 h-5 neon-text" />
+                                        <TrendingUp className="w-5 h-5 text-foreground" />
                                         <span>Transaction Volume Trends</span>
                                     </CardTitle>
                                 </CardHeader>
@@ -380,7 +382,7 @@ export function BlockchainAudit() {
                             <Card className="glass hover-glow">
                                 <CardHeader>
                                     <CardTitle className="flex items-center space-x-2">
-                                        <Database className="w-5 h-5 neon-text" />
+                                        <Database className="w-5 h-5 text-foreground" />
                                         <span>Action Types Distribution</span>
                                     </CardTitle>
                                 </CardHeader>
@@ -407,7 +409,7 @@ export function BlockchainAudit() {
                         <Card className="glass hover-glow">
                             <CardHeader>
                                 <CardTitle className="flex items-center space-x-2">
-                                    <Shield className="w-5 h-5 neon-text" />
+                                    <Shield className="w-5 h-5 text-foreground" />
                                     <span>Data Integrity Verification</span>
                                 </CardTitle>
                             </CardHeader>
@@ -459,7 +461,7 @@ export function BlockchainAudit() {
                             <CardHeader>
                                 <div className="flex items-center justify-between">
                                     <CardTitle className="flex items-center space-x-3">
-                                        <Link className="w-6 h-6 neon-text" />
+                                        <Link className="w-6 h-6 text-foreground" />
                                         <div>
                                             <h2 className="text-xl">Transaction Details</h2>
                                             <p className="text-sm text-muted-foreground">ID: {selectedTransaction.id}</p>
@@ -478,7 +480,7 @@ export function BlockchainAudit() {
                             <CardContent className="space-y-6">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div className="space-y-4">
-                                        <h3 className="font-bold neon-text">Transaction Information</h3>
+                                        <h3 className="font-bold text-foreground">Transaction Information</h3>
                                         <div className="space-y-3">
                                             <div>
                                                 <p className="text-sm text-muted-foreground">Transaction Hash</p>
@@ -510,7 +512,7 @@ export function BlockchainAudit() {
                                     </div>
 
                                     <div className="space-y-4">
-                                        <h3 className="font-bold neon-text">Action Details</h3>
+                                        <h3 className="font-bold text-foreground">Action Details</h3>
                                         <div className="space-y-3">
                                             <div>
                                                 <p className="text-sm text-muted-foreground">Action Type</p>
@@ -530,7 +532,7 @@ export function BlockchainAudit() {
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div className="space-y-4">
-                                        <h3 className="font-bold neon-text">Network Information</h3>
+                                        <h3 className="font-bold text-foreground">Network Information</h3>
                                         <div className="space-y-3">
                                             <div>
                                                 <p className="text-sm text-muted-foreground">Gas Used</p>
@@ -544,7 +546,7 @@ export function BlockchainAudit() {
                                     </div>
 
                                     <div className="space-y-4">
-                                        <h3 className="font-bold neon-text">Data Verification</h3>
+                                        <h3 className="font-bold text-foreground">Data Verification</h3>
                                         <div className="space-y-3">
                                             <div>
                                                 <p className="text-sm text-muted-foreground">Data Hash</p>
