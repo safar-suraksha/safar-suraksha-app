@@ -1,2 +1,3 @@
 /web-backend/node_modules
 /web-backend/.env
+.DS_Store
