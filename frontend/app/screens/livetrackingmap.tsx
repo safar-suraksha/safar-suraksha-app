@@ -143,13 +143,13 @@ const LiveTrackingMap = ({ onShowWarning, onNavigateBack, theme }:any) => {
 
   const isDark = theme?.mode === 'dark';
 
-  const getMapBackground = () => {
+  const getMapBackground = (): readonly [string, string, string] => {
     if (mapMode === 'satellite') {
-      return ['#166534', '#15803d', '#22c55e'];
+      return ['#166534', '#15803d', '#22c55e'] as const;
     } else {
       return isDark 
-        ? ['#111827', '#1f2937', '#374151'] 
-        : ['#f9fafb', '#f3f4f6', '#ffffff'];
+        ? ['#111827', '#1f2937', '#374151'] as const
+        : ['#f9fafb', '#f3f4f6', '#ffffff'] as const;
     }
   };
 

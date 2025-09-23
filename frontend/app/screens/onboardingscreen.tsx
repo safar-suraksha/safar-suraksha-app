@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     View,
     Text,
@@ -15,7 +15,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useNavigation } from '@react-navigation/native';
+import { RootStackParamList } from '../navigation/AppNavigator';
 
 interface OnboardingData {
     personalInfo: {
@@ -38,17 +40,19 @@ interface OnboardingData {
 }
 
 interface OnboardingScreenProps {
-    onComplete: (data: OnboardingData) => void;
+    onComplete?: (data: OnboardingData) => void;
     isDark?: boolean;
 }
+
+type OnboardingNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Onboarding'>;
 
 export default function OnboardingScreen({ onComplete, isDark = false }: OnboardingScreenProps) {
     const [currentStep, setCurrentStep] = useState(0);
     const [isLoading, setIsLoading] = useState(false);
     const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
-    const [progressAnim] = useState(new Animated.Value(0));
+    const [progressAnim] = useState(new Animated.Value(1/3));
     const [successAnim] = useState(new Animated.Value(0));
-    const router = useRouter()
+    const navigation = useNavigation<OnboardingNavigationProp>();
 
     const [formData, setFormData] = useState<OnboardingData>({
         personalInfo: {
@@ -68,6 +72,10 @@ export default function OnboardingScreen({ onComplete, isDark = false }: Onboard
             visaNumber: '',
             photo: ''
         }
+    });
+
+    useEffect(() => {
+        animateProgress((currentStep + 1) / steps.length);
     });
 
     const theme = {
@@ -117,15 +125,15 @@ export default function OnboardingScreen({ onComplete, isDark = false }: Onboard
     const isStepValid = () => {
         switch (currentStep) {
             case 0:
-                return formData.personalInfo.fullName &&
-                    formData.personalInfo.email &&
-                    formData.personalInfo.phone;
+                return formData.personalInfo.fullName.trim() !== '' &&
+                    formData.personalInfo.email.trim() !== '' &&
+                    formData.personalInfo.phone.trim() !== '';
             case 1:
-                return formData.travelInfo.destination &&
-                    formData.travelInfo.duration &&
-                    formData.travelInfo.emergencyContact;
+                return formData.travelInfo.destination.trim() !== '' &&
+                    formData.travelInfo.duration.trim() !== '' &&
+                    formData.travelInfo.emergencyContact.trim() !== '';
             case 2:
-                return formData.verification.passportNumber;
+                return formData.verification.passportNumber.trim() !== '';
             default:
                 return false;
         }
@@ -140,22 +148,45 @@ export default function OnboardingScreen({ onComplete, isDark = false }: Onboard
         }).start();
     };
 
-    const handleNext = () => {
-        if (currentStep < steps.length - 1) {
-            setIsLoading(true);
-            setTimeout(() => {
-                setCurrentStep(prev => {
-                    const newStep = prev + 1;
-                    animateProgress((newStep + 1) / steps.length);
-                    return newStep;
-                });
-                setIsLoading(false);
-            }, 800);
-        } else {
-            // Last step: navigate to dashboard
-            setIsLoading(true);
-            setShowSuccessAnimation(true);
+    // Convert form data to dashboard userData format
+    const convertToUserData = (data: OnboardingData) => {
+        return {
+            fullName: data.personalInfo.fullName,
+            safetyScore: 85, // Initial safety score
+            currentLocation: data.travelInfo.destination || 'New Delhi, India',
+            destination: data.travelInfo.destination,
+            emergencyContacts: [data.travelInfo.emergencyContact]
+        };
+    };
 
+    const handleNext = () => {
+        console.log('handleNext called, currentStep:', currentStep, 'steps.length:', steps.length);
+        console.log('isStepValid:', isStepValid());
+        
+        if (!isStepValid()) {
+            Alert.alert('Incomplete Information', 'Please fill in all required fields before proceeding.');
+            return;
+        }
+
+        if (currentStep < steps.length - 1) {
+            console.log('Moving to next step');
+            setIsLoading(true);
+            
+            setTimeout(() => {
+                const newStep = currentStep + 1;
+                setCurrentStep(newStep);
+                animateProgress((newStep + 1) / steps.length);
+                setIsLoading(false);
+            }, 500);
+        } else {
+            console.log('Completing onboarding, navigating to dashboard');
+            setIsLoading(true);
+            
+            if (onComplete) {
+                onComplete(formData);
+            }
+            
+            setShowSuccessAnimation(true);
             Animated.spring(successAnim, {
                 toValue: 1,
                 tension: 50,
@@ -163,12 +194,23 @@ export default function OnboardingScreen({ onComplete, isDark = false }: Onboard
                 useNativeDriver: true,
             }).start();
 
+            // Navigate to Dashboard with userData after success animation
             setTimeout(() => {
-                router.push("/screens/dashboard"); // <--- navigate here
+                console.log('Attempting to navigate to dashboard...');
+                try {
+                    const userData = convertToUserData(formData);
+                    navigation.reset({
+                        index: 0,
+                        routes: [{ name: 'Dashboard', params: { userData } }],
+                    });
+                    console.log('Navigation successful');
+                } catch (error) {
+                    console.error('Navigation error:', error);
+                    Alert.alert('Navigation Error', 'Unable to navigate to dashboard. Please restart the app.');
+                }
             }, 2000);
         }
     };
-
 
     const handleBack = () => {
         if (currentStep > 0) {
@@ -215,8 +257,7 @@ export default function OnboardingScreen({ onComplete, isDark = false }: Onboard
                                             ? theme.colors.primary
                                             : theme.colors.border,
                                 }
-                            ]}
-                        >
+                            ]}>
                             <Ionicons
                                 name={isCompleted ? 'checkmark' : step.icon as any}
                                 size={16}
@@ -235,8 +276,7 @@ export default function OnboardingScreen({ onComplete, isDark = false }: Onboard
                                             ? theme.colors.success
                                             : theme.colors.textSecondary
                                 }
-                            ]}
-                        >
+                            ]}>
                             {step.title.split(' ')[0]}
                         </Text>
                     </View>
@@ -244,6 +284,65 @@ export default function OnboardingScreen({ onComplete, isDark = false }: Onboard
             })}
         </View>
     );
+
+    const renderNavigationButtons = () => (
+        <View style={styles.navigationContainer}>
+            {currentStep > 0 && (
+                <TouchableOpacity
+                    style={[styles.backButton, { backgroundColor: theme.colors.surface }]}
+                    onPress={handleBack}>
+                    <Ionicons name="arrow-back" size={20} color={theme.colors.text} />
+                    <Text style={[styles.backButtonText, { color: theme.colors.text }]}>Back</Text>
+                </TouchableOpacity>
+            )}
+
+            <TouchableOpacity
+                style={[
+                    styles.nextButton,
+                    {
+                        opacity: isStepValid() ? 1 : 0.5,
+                        flex: currentStep === 0 ? 1 : 0.7,
+                    }
+                ]}
+                onPress={handleNext}
+                disabled={!isStepValid() || isLoading}>
+                <LinearGradient
+                    colors={isStepValid() ? [theme.colors.primary, theme.colors.primaryLight] : [theme.colors.surface, theme.colors.surface]}
+                    style={styles.nextButtonGradient}
+                >
+                    {isLoading ? (
+                        <Animated.View
+                            style={{
+                                transform: [
+                                    {
+                                        rotate: progressAnim.interpolate({
+                                            inputRange: [0, 1],
+                                            outputRange: ['0deg', '360deg'],
+                                        }),
+                                    },
+                                ],
+                            }}
+                        >
+                            <Ionicons name="refresh" size={20} color="#FFFFFF" />
+                        </Animated.View>
+                    ) : (
+                        <>
+                            <Text style={[styles.nextButtonText, { color: isStepValid() ? '#FFFFFF' : theme.colors.textSecondary }]}>
+                                {currentStep === steps.length - 1 ? 'Complete Setup' : 'Next Step'}
+                            </Text>
+                            <Ionicons
+                                name={currentStep === steps.length - 1 ? 'checkmark' : 'arrow-forward'}
+                                size={20}
+                                color={isStepValid() ? '#FFFFFF' : theme.colors.textSecondary}
+                            />
+                        </>
+                    )}
+                </LinearGradient>
+            </TouchableOpacity>
+        </View>
+    );
+
+    // ... (rest of your render methods remain the same: renderPersonalInfo, renderTravelInfo, renderVerification, renderSuccessOverlay)
 
     const renderPersonalInfo = () => (
         <View style={styles.formContainer}>
@@ -310,62 +409,7 @@ export default function OnboardingScreen({ onComplete, isDark = false }: Onboard
                     </Text>
                 </View>
             </View>
-            <View style={styles.navigationContainer}>
-                {currentStep > 0 && (
-                    <TouchableOpacity
-                        style={[styles.backButton, { backgroundColor: theme.colors.surface }]}
-                        onPress={handleBack}
-                    >
-                        <Ionicons name="arrow-back" size={20} color={theme.colors.text} />
-                        <Text style={[styles.backButtonText, { color: theme.colors.text }]}>Back</Text>
-                    </TouchableOpacity>
-                )}
-
-                <TouchableOpacity
-                    style={[
-                        styles.nextButton,
-                        {
-                            opacity: isStepValid() ? 1 : 0.5,
-                            flex: currentStep === 0 ? 1 : 0.7,
-                        }
-                    ]}
-                    onPress={handleNext}
-                    disabled={!isStepValid() || isLoading}
-                >
-                    <LinearGradient
-                        colors={isStepValid() ? [theme.colors.primary, theme.colors.primaryLight] : [theme.colors.surface, theme.colors.surface]}
-                        style={styles.nextButtonGradient}
-                    >
-                        {isLoading ? (
-                            <Animated.View
-                                style={{
-                                    transform: [
-                                        {
-                                            rotate: progressAnim.interpolate({
-                                                inputRange: [0, 1],
-                                                outputRange: ['0deg', '360deg'],
-                                            }),
-                                        },
-                                    ],
-                                }}
-                            >
-                                <Ionicons name="refresh" size={20} color="#FFFFFF" />
-                            </Animated.View>
-                        ) : (
-                            <>
-                                <Text style={[styles.nextButtonText, { color: isStepValid() ? '#FFFFFF' : theme.colors.textSecondary }]}>
-                                    {currentStep === steps.length - 1 ? 'Complete' : 'Next'}
-                                </Text>
-                                <Ionicons
-                                    name="arrow-forward"
-                                    size={20}
-                                    color={isStepValid() ? '#FFFFFF' : theme.colors.textSecondary}
-                                />
-                            </>
-                        )}
-                    </LinearGradient>
-                </TouchableOpacity>
-            </View>
+            {renderNavigationButtons()}
         </View>
     );
 
@@ -431,62 +475,7 @@ export default function OnboardingScreen({ onComplete, isDark = false }: Onboard
                     placeholderTextColor={theme.colors.textSecondary}
                 />
             </View>
-            <View style={styles.navigationContainer}>
-                {currentStep > 0 && (
-                    <TouchableOpacity
-                        style={[styles.backButton, { backgroundColor: theme.colors.surface }]}
-                        onPress={handleBack}
-                    >
-                        <Ionicons name="arrow-back" size={20} color={theme.colors.text} />
-                        <Text style={[styles.backButtonText, { color: theme.colors.text }]}>Back</Text>
-                    </TouchableOpacity>
-                )}
-
-                <TouchableOpacity
-                    style={[
-                        styles.nextButton,
-                        {
-                            opacity: isStepValid() ? 1 : 0.5,
-                            flex: currentStep === 0 ? 1 : 0.7,
-                        }
-                    ]}
-                    onPress={handleNext}
-                    disabled={!isStepValid() || isLoading}
-                >
-                    <LinearGradient
-                        colors={isStepValid() ? [theme.colors.primary, theme.colors.primaryLight] : [theme.colors.surface, theme.colors.surface]}
-                        style={styles.nextButtonGradient}
-                    >
-                        {isLoading ? (
-                            <Animated.View
-                                style={{
-                                    transform: [
-                                        {
-                                            rotate: progressAnim.interpolate({
-                                                inputRange: [0, 1],
-                                                outputRange: ['0deg', '360deg'],
-                                            }),
-                                        },
-                                    ],
-                                }}
-                            >
-                                <Ionicons name="refresh" size={20} color="#FFFFFF" />
-                            </Animated.View>
-                        ) : (
-                            <>
-                                <Text style={[styles.nextButtonText, { color: isStepValid() ? '#FFFFFF' : theme.colors.textSecondary }]}>
-                                    {currentStep === steps.length - 1 ? 'Complete' : 'Next'}
-                                </Text>
-                                <Ionicons
-                                    name="arrow-forward"
-                                    size={20}
-                                    color={isStepValid() ? '#FFFFFF' : theme.colors.textSecondary}
-                                />
-                            </>
-                        )}
-                    </LinearGradient>
-                </TouchableOpacity>
-            </View>
+            {renderNavigationButtons()}
         </View>
     );
 
@@ -556,62 +545,7 @@ export default function OnboardingScreen({ onComplete, isDark = false }: Onboard
                     </Text>
                 </View>
             </View>
-            <View style={styles.navigationContainer}>
-                {currentStep > 0 && (
-                    <TouchableOpacity
-                        style={[styles.backButton, { backgroundColor: theme.colors.surface }]}
-                        onPress={handleBack}
-                    >
-                        <Ionicons name="arrow-back" size={20} color={theme.colors.text} />
-                        <Text style={[styles.backButtonText, { color: theme.colors.text }]}>Back</Text>
-                    </TouchableOpacity>
-                )}
-
-                <TouchableOpacity
-                    style={[
-                        styles.nextButton,
-                        {
-                            opacity: isStepValid() ? 1 : 0.5,
-                            flex: currentStep === 0 ? 1 : 0.7,
-                        }
-                    ]}
-                    onPress={handleNext}
-                    disabled={!isStepValid() || isLoading}
-                >
-                    <LinearGradient
-                        colors={isStepValid() ? [theme.colors.primary, theme.colors.primaryLight] : [theme.colors.surface, theme.colors.surface]}
-                        style={styles.nextButtonGradient}
-                    >
-                        {isLoading ? (
-                            <Animated.View
-                                style={{
-                                    transform: [
-                                        {
-                                            rotate: progressAnim.interpolate({
-                                                inputRange: [0, 1],
-                                                outputRange: ['0deg', '360deg'],
-                                            }),
-                                        },
-                                    ],
-                                }}
-                            >
-                                <Ionicons name="refresh" size={20} color="#FFFFFF" />
-                            </Animated.View>
-                        ) : (
-                            <>
-                                <Text style={[styles.nextButtonText, { color: isStepValid() ? '#FFFFFF' : theme.colors.textSecondary }]}>
-                                    {currentStep === steps.length - 1 ? 'Complete' : 'Next'}
-                                </Text>
-                                <Ionicons
-                                    name="arrow-forward"
-                                    size={20}
-                                    color={isStepValid() ? '#FFFFFF' : theme.colors.textSecondary}
-                                />
-                            </>
-                        )}
-                    </LinearGradient>
-                </TouchableOpacity>
-            </View>
+            {renderNavigationButtons()}
         </View>
     );
 
@@ -760,7 +694,9 @@ export default function OnboardingScreen({ onComplete, isDark = false }: Onboard
     );
 }
 
+// ... (all your existing styles remain the same)
 const styles = StyleSheet.create({
+    // ... (keep all your existing styles exactly as they are)
     container: {
         flex: 1,
     },

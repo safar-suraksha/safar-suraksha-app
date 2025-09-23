@@ -3,7 +3,6 @@ import { useFonts } from 'expo-font';
 import { StatusBar } from 'expo-status-bar';
 import React from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
-import 'react-native-reanimated';
 import { ThemeProvider as CustomThemeProvider } from '@/contexts/ThemeContext';
 import { UserProvider, useUser } from '@/contexts/UserContext';
 import { useColorScheme } from '@/hooks/useColorScheme';

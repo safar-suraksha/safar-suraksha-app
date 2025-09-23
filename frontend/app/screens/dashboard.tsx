@@ -1,26 +1,34 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Dimensions, StatusBar, Alert, Animated, Easing, Vibration, Platform } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  StyleSheet,
+  Dimensions,
+  StatusBar,
+  Alert,
+  Animated,
+  Easing,
+  Vibration,
+  Platform,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
 import Svg, { Circle } from 'react-native-svg';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../navigation/AppNavigator';
 
-const { width, } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 
-interface DashboardProps {
-  userData: {
-    fullName: string;
-    safetyScore: number;
-    currentLocation: string;
-    destination: string;
-    emergencyContacts: string[];
-  };
-  isDark?: boolean;
-  navigation?: any; // React Navigation
-}
+type DashboardProps = NativeStackScreenProps<RootStackParamList, 'Dashboard'>;
 
-export default function Dashboard({ userData, isDark = false, navigation }: DashboardProps) {
+export default function Dashboard({ route, navigation }: DashboardProps) {
+  const { userData } = route.params;
+  const isDark = false;
+
   const [currentTime, setCurrentTime] = useState(new Date());
   const [sosPressed, setSosPressed] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -30,12 +38,16 @@ export default function Dashboard({ userData, isDark = false, navigation }: Dash
   const [weatherInfo] = useState({ temp: 28, condition: 'Sunny' });
   const [nearbyTourists] = useState(12);
 
-  // Animated values
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const sosAnim = useRef(new Animated.Value(0)).current;
   const scoreAnim = useRef(new Animated.Value(0)).current;
   const locationPulse = useRef(new Animated.Value(1)).current;
   const batteryAlertAnim = useRef(new Animated.Value(0)).current;
+  const sparkleRotateAnim = useRef(new Animated.Value(0)).current;
+  const floatingElementsAnim = useRef([...Array(5)].map(() => new Animated.Value(0))).current;
+  const shimmerAnim = useRef(new Animated.Value(0)).current;
+  const progressAnim = useRef(new Animated.Value(0)).current;
+  const guardianPulseAnim = useRef(new Animated.Value(1)).current;
 
   const theme = {
     colors: {
@@ -57,8 +69,7 @@ export default function Dashboard({ userData, isDark = false, navigation }: Dash
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
-    
-    // Animate safety score on mount
+
     const scoreTimer = setTimeout(() => {
       Animated.timing(scoreAnim, {
         toValue: userData.safetyScore,
@@ -79,11 +90,11 @@ export default function Dashboard({ userData, isDark = false, navigation }: Dash
       }, 50);
     }, 500);
 
-    // Pulse animations
+    // Enhanced animations
     const pulseAnimation = Animated.loop(
       Animated.sequence([
         Animated.timing(pulseAnim, {
-          toValue: 1.1,
+          toValue: 1.15,
           duration: 2000,
           easing: Easing.inOut(Easing.quad),
           useNativeDriver: true,
@@ -98,7 +109,6 @@ export default function Dashboard({ userData, isDark = false, navigation }: Dash
     );
     pulseAnimation.start();
 
-    // Location pulse
     const locationPulseAnimation = Animated.loop(
       Animated.sequence([
         Animated.timing(locationPulse, {
@@ -117,7 +127,80 @@ export default function Dashboard({ userData, isDark = false, navigation }: Dash
     );
     locationPulseAnimation.start();
 
-    // Simulate battery check
+    const sparkleAnimation = Animated.loop(
+      Animated.timing(sparkleRotateAnim, {
+        toValue: 1,
+        duration: 4000,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      })
+    );
+    sparkleAnimation.start();
+
+    const shimmerAnimation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(shimmerAnim, {
+          toValue: 1,
+          duration: 2000,
+          easing: Easing.inOut(Easing.quad),
+          useNativeDriver: true,
+        }),
+        Animated.timing(shimmerAnim, {
+          toValue: 0,
+          duration: 2000,
+          easing: Easing.inOut(Easing.quad), 
+          useNativeDriver: true,
+        }),
+      ])
+    );
+    shimmerAnimation.start();
+
+    floatingElementsAnim.forEach((anim, index) => {
+      const floatingAnimation = Animated.loop(
+        Animated.sequence([
+          Animated.timing(anim, {
+            toValue: 1,
+            duration: 6000 + index * 1000,
+            easing: Easing.inOut(Easing.sin),
+            useNativeDriver: true,
+          }),
+          Animated.timing(anim, {
+            toValue: 0,
+            duration: 6000 + index * 1000,
+            easing: Easing.inOut(Easing.sin),
+            useNativeDriver: true,
+          }),
+        ])
+      );
+      floatingAnimation.start();
+    });
+
+    Animated.timing(progressAnim, {
+      toValue: 0.21, // Day 3 of 14
+      duration: 1500,
+      delay: 1800,
+      easing: Easing.out(Easing.quad),
+      useNativeDriver: false,
+    }).start();
+
+    const guardianAnimation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(guardianPulseAnim, {
+          toValue: 1.15,
+          duration: 2000,
+          easing: Easing.inOut(Easing.quad), // Use proper easing function
+          useNativeDriver: true,
+        }),
+        Animated.timing(guardianPulseAnim, {
+          toValue: 1,
+          duration: 2000,
+          easing: Easing.inOut(Easing.quad),
+          useNativeDriver: true,
+        }),
+      ])
+    );
+    guardianAnimation.start();
+
     const batteryTimer = setTimeout(() => {
       if (Math.random() > 0.7) {
         setShowBatteryAlert(true);
@@ -136,8 +219,11 @@ export default function Dashboard({ userData, isDark = false, navigation }: Dash
       clearTimeout(batteryTimer);
       pulseAnimation.stop();
       locationPulseAnimation.stop();
+      sparkleAnimation.stop();
+      shimmerAnimation.stop();
+      guardianAnimation.stop();
     };
-  }, [userData.safetyScore]);
+  });
 
   const getSafetyColor = (score: number) => {
     if (score >= 80) return theme.colors.success;
@@ -148,15 +234,13 @@ export default function Dashboard({ userData, isDark = false, navigation }: Dash
   const handleSOSPress = () => {
     setSosPressed(true);
     setIsLoading(true);
-    
-    // Vibration pattern for emergency
+
     if (Platform.OS === 'ios') {
       Vibration.vibrate([200, 100, 200, 100, 200]);
     } else {
       Vibration.vibrate([200, 100, 200, 100, 200]);
     }
 
-    // SOS animation
     Animated.sequence([
       Animated.timing(sosAnim, {
         toValue: 1,
@@ -171,57 +255,155 @@ export default function Dashboard({ userData, isDark = false, navigation }: Dash
         useNativeDriver: true,
       }),
     ]).start();
-    
+
     setTimeout(() => {
       Alert.alert(
-        'SOS ACTIVATED!',
+        '🚨 SOS ACTIVATED!',
         '✅ Emergency services contacted\n📍 Location shared with rescue team\n📞 Family notified\n⏱️ Response time: 3-5 minutes',
         [{ text: 'OK', onPress: () => setIsLoading(false) }]
       );
     }, 2000);
-    
+
     setTimeout(() => setSosPressed(false), 4000);
   };
 
   const handleQuickAction = (route: string) => {
     setIsLoading(true);
     setTimeout(() => {
-      if (navigation) {
-        navigation.navigate(route);
+      try {
+        switch (route) {
+          case 'EmergencyCall':
+            navigation.navigate('EmergencyCall', { userData });
+            break;
+          case 'LiveMap':
+            navigation.navigate('LiveMap', { userData });
+            break;
+          case 'ChatSupport':
+            navigation.navigate('ChatSupport', { userData });
+            break;
+          case 'ReportIssue':
+            navigation.navigate('ReportIssue', { userData });
+            break;
+          case 'DigitalIDCard':
+            navigation.navigate('DigitalIDCard', { userData });
+            break;
+          case 'Settings':
+            navigation.navigate('Settings', { userData });
+            break;
+          case 'FindHotels':
+            navigation.navigate('Itinerary', { userData });
+            break;
+          default:
+            Alert.alert('Feature Coming Soon', `${route} feature will be available in the next update.`);
+            break;
+        }
+      } catch (error) {
+        console.error('Navigation error:', error);
+        Alert.alert('Navigation Error', 'Unable to navigate to the requested screen.');
       }
       setIsLoading(false);
     }, 800);
   };
 
   const quickActions = [
-    { 
+    {
       icon: 'call',
-      label: 'Emergency Call', 
+      label: 'Emergency Call',
       route: 'EmergencyCall',
-      colors: [theme.colors.error, '#DC2626']
+      colors: [theme.colors.error, '#DC2626'],
+      gradientColors: ['#EF4444', '#DC2626']
     },
-    { 
+    {
       icon: 'navigate',
-      label: 'Find Route', 
+      label: 'Find Route',
       route: 'LiveMap',
-      colors: [theme.colors.primary, theme.colors.primaryLight]
+      colors: [theme.colors.primary, theme.colors.primaryLight],
+      gradientColors: ['#3B82F6', '#60A5FA']
     },
-    { 
+    {
       icon: 'chatbubble-ellipses',
-      label: 'AI Chat Support', 
+      label: 'AI Chat Support',
       route: 'ChatSupport',
-      colors: [theme.colors.success, '#059669']
+      colors: [theme.colors.success, '#059669'],
+      gradientColors: ['#10B981', '#059669']
     },
-    { 
+    {
       icon: 'camera',
-      label: 'Report Issue', 
+      label: 'Report Issue',
       route: 'ReportIssue',
-      colors: [theme.colors.warning, '#D97706']
+      colors: [theme.colors.warning, '#D97706'],
+      gradientColors: ['#F59E0B', '#D97706']
+    },
+    {
+      icon: 'bed',
+      label: 'Find Hotels',
+      route: 'FindHotels',
+      colors: ['#A855F7', '#9333EA'],
+      gradientColors: ['#A855F7', '#9333EA']
     }
   ];
 
-  const renderHeader = () => (
-    <BlurView intensity={20} style={styles.headerContainer}>
+  const renderFloatingElements = () => (
+    <View style={styles.floatingElements}>
+      {['shield-checkmark', 'star', 'diamond', 'pulse', 'eye'].map((iconName, index) => (
+        <Animated.View
+          key={index}
+          style={[
+            styles.floatingElement,
+            {
+              left: `${10 + (index * 20)}%`,
+              top: `${15 + (index * 15)}%`,
+              opacity: floatingElementsAnim[index].interpolate({
+                inputRange: [0, 1],
+                outputRange: [0.03, 0.08],
+              }),
+              transform: [
+                {
+                  translateY: floatingElementsAnim[index].interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [0, -40],
+                  }),
+                },
+                {
+                  rotate: floatingElementsAnim[index].interpolate({
+                    inputRange: [0, 1],
+                    outputRange: ['0deg', '15deg'],
+                  }),
+                },
+                {
+                  scale: floatingElementsAnim[index].interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [0.8, 1.1],
+                  }),
+                },
+              ],
+            },
+          ]}
+        >
+          <Ionicons name={iconName as any} size={28 + index * 3} color={theme.colors.primary} />
+        </Animated.View>
+      ))}
+    </View>
+  );
+
+  const renderEnhancedHeader = () => (
+    <View style={[styles.headerContainer, { backgroundColor: theme.colors.surface }]}>
+      <Animated.View
+        style={[
+          styles.headerShimmer,
+          {
+            transform: [
+              {
+                translateX: shimmerAnim.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [-300, 300],
+                }),
+              },
+            ],
+          },
+        ]}
+      />
+
       <View style={styles.headerContent}>
         <View style={styles.headerLeft}>
           <View style={styles.timeWeatherContainer}>
@@ -232,101 +414,147 @@ export default function Dashboard({ userData, isDark = false, navigation }: Dash
               </Text>
             </View>
             <View style={styles.weatherContainer}>
-              <Ionicons 
-                name={isDark ? 'moon' : 'sunny'} 
-                size={14} 
-                color={isDark ? '#60A5FA' : theme.colors.warning} 
+              <Ionicons
+                name={isDark ? 'moon' : 'sunny'}
+                size={14}
+                color={isDark ? '#60A5FA' : theme.colors.warning}
               />
               <Text style={[styles.weatherText, { color: theme.colors.textSecondary }]}>
                 {weatherInfo.temp}°C
               </Text>
             </View>
           </View>
-          
+
           <Text style={[styles.greeting, { color: theme.colors.text }]}>
-            Namaste, {userData.fullName.split(' ')[0]}! 🙏
+            Namaste, {userData.fullName.split(' ')[0]}!
+            <Animated.Text
+              style={{
+                transform: [
+                  {
+                    rotate: sparkleRotateAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: ['0deg', '20deg'],
+                    }),
+                  },
+                ],
+              }}
+            >
+              {' 🙏'}
+            </Animated.Text>
           </Text>
-          
+
           <View style={styles.statusContainer}>
             <View style={styles.activeStatus}>
-              <Animated.View 
+              <Animated.View
                 style={[
-                  styles.statusDot, 
-                  { 
+                  styles.statusDot,
+                  {
                     backgroundColor: theme.colors.success,
-                    transform: [{ scale: pulseAnim }]
-                  }
-                ]} 
+                    transform: [{ scale: pulseAnim }],
+                  },
+                ]}
               />
               <Text style={[styles.statusText, { color: theme.colors.success }]}>
                 Safety Guardian Active
               </Text>
             </View>
             <View style={styles.connectionIcons}>
-              <Ionicons 
-                name="wifi" 
-                size={14} 
-                color={connectionStatus === 'excellent' ? theme.colors.success : theme.colors.warning} 
+              <Ionicons
+                name="wifi"
+                size={14}
+                color={connectionStatus === 'excellent' ? theme.colors.success : theme.colors.warning}
               />
               <Ionicons name="battery-full" size={14} color={theme.colors.success} />
             </View>
           </View>
         </View>
-        
+
         <View style={styles.headerRight}>
           <TouchableOpacity
-            style={[styles.headerButton, { backgroundColor: theme.colors.surface }]}
-            onPress={() => handleQuickAction('DigitalId')}
+            style={[styles.headerButton, { backgroundColor: theme.colors.background }]}
+            onPress={() => handleQuickAction('DigitalIDCard')}
           >
-            <Ionicons name="card-outline" size={22} color={theme.colors.text} />
+            <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
+              <Ionicons name="card-outline" size={22} color={theme.colors.text} />
+            </Animated.View>
           </TouchableOpacity>
-          
+
           <TouchableOpacity
-            style={[styles.headerButton, { backgroundColor: theme.colors.surface }]}
+            style={[styles.headerButton, { backgroundColor: theme.colors.background }]}
             onPress={() => handleQuickAction('Settings')}
           >
-            <Ionicons name="settings-outline" size={22} color={theme.colors.text} />
+            <Animated.View
+              style={{
+                transform: [
+                  {
+                    rotate: sparkleRotateAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: ['0deg', '90deg'],
+                    }),
+                  },
+                ],
+              }}
+            >
+              <Ionicons name="settings-outline" size={22} color={theme.colors.text} />
+            </Animated.View>
           </TouchableOpacity>
         </View>
       </View>
 
       <View style={styles.quickStats}>
-        <View style={[styles.statBadge, { backgroundColor: theme.colors.surfaceVariant }]}>
+        <View style={[styles.statBadge, { backgroundColor: 'rgba(255,255,255,0.4)' }]}>
           <Ionicons name="people" size={14} color={theme.colors.primary} />
           <Text style={[styles.statText, { color: theme.colors.text }]}>{nearbyTourists} nearby</Text>
         </View>
-        <View style={[styles.statBadge, { backgroundColor: theme.colors.surfaceVariant }]}>
+        <View style={[styles.statBadge, { backgroundColor: 'rgba(255,255,255,0.4)' }]}>
           <Ionicons name="trending-up" size={14} color={theme.colors.success} />
           <Text style={[styles.statText, { color: theme.colors.text }]}>Safe zone</Text>
         </View>
       </View>
-    </BlurView>
+    </View>
   );
 
   const renderBatteryAlert = () => {
     if (!showBatteryAlert) return null;
 
     return (
-      <Animated.View 
+      <Animated.View
         style={[
-          styles.batteryAlert, 
-          { 
+          styles.batteryAlert,
+          {
             backgroundColor: `${theme.colors.warning}15`,
             borderColor: `${theme.colors.warning}30`,
             opacity: batteryAlertAnim,
-            transform: [{ scale: batteryAlertAnim }]
-          }
+            transform: [{ scale: batteryAlertAnim }],
+          },
         ]}
       >
+        <Animated.View
+          style={[
+            styles.batteryShimmer,
+            {
+              transform: [
+                {
+                  translateX: shimmerAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [-100, 100],
+                  }),
+                },
+              ],
+            },
+          ]}
+        />
         <View style={styles.batteryAlertContent}>
           <Animated.View
             style={{
-              transform: [{
-                scale: pulseAnim.interpolate({
-                  inputRange: [1, 1.1],
-                  outputRange: [1, 1.1],
-                })
-              }]
+              transform: [
+                {
+                  scale: pulseAnim.interpolate({
+                    inputRange: [1, 1.15],
+                    outputRange: [1, 1.1],
+                  }),
+                },
+              ],
             }}
           >
             <Ionicons name="battery-half" size={18} color={theme.colors.warning} />
@@ -342,11 +570,27 @@ export default function Dashboard({ userData, isDark = false, navigation }: Dash
     );
   };
 
-  const renderLocationCard = () => (
-    <TouchableOpacity 
+  const renderPremiumLocationCard = () => (
+    <TouchableOpacity
       style={[styles.locationCard, { backgroundColor: theme.colors.surface }]}
       activeOpacity={0.7}
     >
+      <Animated.View
+        style={[
+          styles.locationShimmer,
+          {
+            transform: [
+              {
+                translateX: shimmerAnim.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [-200, 200],
+                }),
+              },
+            ],
+          },
+        ]}
+      />
+
       <View style={styles.locationContent}>
         <View style={styles.locationIconContainer}>
           <LinearGradient
@@ -357,8 +601,7 @@ export default function Dashboard({ userData, isDark = false, navigation }: Dash
               <Ionicons name="location" size={24} color="#FFFFFF" />
             </Animated.View>
           </LinearGradient>
-          
-          {/* Pulse rings */}
+
           {[1, 2, 3].map(i => (
             <Animated.View
               key={i}
@@ -366,22 +609,24 @@ export default function Dashboard({ userData, isDark = false, navigation }: Dash
                 styles.pulseRing,
                 {
                   borderColor: theme.colors.primary,
-                  transform: [{
-                    scale: pulseAnim.interpolate({
-                      inputRange: [1, 1.1],
-                      outputRange: [1 + (i * 0.1), 1.2 + (i * 0.1)],
-                    })
-                  }],
+                  transform: [
+                    {
+                      scale: pulseAnim.interpolate({
+                        inputRange: [1, 1.15],
+                        outputRange: [1 + i * 0.1, 1.2 + i * 0.1],
+                      }),
+                    },
+                  ],
                   opacity: pulseAnim.interpolate({
-                    inputRange: [1, 1.1],
+                    inputRange: [1, 1.15],
                     outputRange: [0.6, 0],
                   }),
-                }
+                },
               ]}
             />
           ))}
         </View>
-        
+
         <View style={styles.locationInfo}>
           <Text style={[styles.locationTitle, { color: theme.colors.text }]}>
             {userData.currentLocation}
@@ -400,7 +645,7 @@ export default function Dashboard({ userData, isDark = false, navigation }: Dash
               <Text style={[styles.badgeText, { color: theme.colors.success }]}>SAFE ZONE</Text>
             </View>
             <View style={[styles.badge, { backgroundColor: `${theme.colors.primary}20` }]}>
-              <Ionicons name="radar" size={12} color={theme.colors.primary} />
+              <Ionicons size={12} color={theme.colors.primary} />
               <Text style={[styles.badgeText, { color: theme.colors.primary }]}>MONITORED</Text>
             </View>
           </View>
@@ -409,23 +654,65 @@ export default function Dashboard({ userData, isDark = false, navigation }: Dash
     </TouchableOpacity>
   );
 
-  const renderSafetyScore = () => {
+  const renderRevolutionarySafetyScore = () => {
     const circumference = 2 * Math.PI * 88;
     const strokeDashoffset = circumference - (safetyScoreAnimation / 100) * circumference;
 
     return (
       <View style={[styles.safetyScoreCard, { backgroundColor: theme.colors.surface }]}>
+        <Animated.View
+          style={[
+            styles.safetyScoreShimmer,
+            {
+              transform: [
+                {
+                  translateX: shimmerAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [-300, 300],
+                  }),
+                },
+              ],
+            },
+          ]}
+        />
+
         <View style={styles.safetyHeader}>
-          <Ionicons name="shield-checkmark" size={28} color={theme.colors.primary} />
+          <Animated.View
+            style={{
+              transform: [
+                {
+                  rotate: sparkleRotateAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: ['0deg', '360deg'],
+                  }),
+                },
+              ],
+            }}
+          >
+            <Ionicons name="shield-checkmark" size={28} color={theme.colors.primary} />
+          </Animated.View>
           <Text style={[styles.safetyTitle, { color: theme.colors.text }]}>
             AI Safety Guardian
           </Text>
-          <Ionicons name="diamond" size={24} color={theme.colors.warning} />
+          <Animated.View
+            style={{
+              transform: [
+                {
+                  rotate: sparkleRotateAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: ['0deg', '15deg'],
+                  }),
+                },
+                { scale: pulseAnim },
+              ],
+            }}
+          >
+            <Ionicons name="diamond" size={24} color={theme.colors.warning} />
+          </Animated.View>
         </View>
 
         <View style={styles.scoreContainer}>
           <View style={styles.scoreCircleContainer}>
-            {/* Decorative rings */}
             {[1, 2, 3].map(i => (
               <Animated.View
                 key={i}
@@ -433,17 +720,19 @@ export default function Dashboard({ userData, isDark = false, navigation }: Dash
                   styles.decorativeRing,
                   {
                     borderColor: `${getSafetyColor(userData.safetyScore)}40`,
-                    transform: [{
-                      scale: pulseAnim.interpolate({
-                        inputRange: [1, 1.1],
-                        outputRange: [1 + (i * 0.05), 1.05 + (i * 0.05)],
-                      })
-                    }]
-                  }
+                    transform: [
+                      {
+                        scale: pulseAnim.interpolate({
+                          inputRange: [1, 1.15],
+                          outputRange: [1 + i * 0.05, 1.05 + i * 0.05],
+                        }),
+                      },
+                    ],
+                  },
                 ]}
               />
             ))}
-            
+
             <Svg width={192} height={192} style={styles.progressSvg}>
               <Circle
                 cx={96}
@@ -467,7 +756,7 @@ export default function Dashboard({ userData, isDark = false, navigation }: Dash
                 transform="rotate(-90 96 96)"
               />
             </Svg>
-            
+
             <View style={styles.scoreCenter}>
               <Text style={[styles.scoreNumber, { color: theme.colors.text }]}>
                 {safetyScoreAnimation}
@@ -477,33 +766,47 @@ export default function Dashboard({ userData, isDark = false, navigation }: Dash
               </Text>
               <View style={styles.starsContainer}>
                 {[...Array(5)].map((_, i) => (
-                  <Ionicons 
+                  <Animated.View
                     key={i}
-                    name="star" 
-                    size={12} 
-                    color={i < Math.floor(userData.safetyScore / 20) ? theme.colors.warning : theme.colors.textSecondary} 
-                  />
+                    style={{
+                      transform: [{ scale: i < Math.floor(userData.safetyScore / 20) ? pulseAnim : 1 }],
+                    }}
+                  >
+                    <Ionicons
+                      name="star"
+                      size={12}
+                      color={i < Math.floor(userData.safetyScore / 20) ? theme.colors.warning : theme.colors.textSecondary}
+                    />
+                  </Animated.View>
                 ))}
               </View>
               <View style={styles.realtimeIndicator}>
-                <Ionicons name="pulse" size={14} color={theme.colors.primary} />
+                <Animated.View
+                  style={{
+                    transform: [{ scale: pulseAnim }],
+                  }}
+                >
+                  <Ionicons name="pulse" size={14} color={theme.colors.primary} />
+                </Animated.View>
                 <Text style={[styles.realtimeText, { color: theme.colors.primary }]}>REAL-TIME</Text>
               </View>
             </View>
           </View>
         </View>
 
-        <View style={[
-          styles.statusBadge, 
-          { backgroundColor: `${getSafetyColor(userData.safetyScore)}20` }
-        ]}>
+        <View
+          style={[
+            styles.statusBadge,
+            { backgroundColor: `${getSafetyColor(userData.safetyScore)}20` },
+          ]}
+        >
           <Ionicons name="checkmark-circle" size={16} color={getSafetyColor(userData.safetyScore)} />
           <Text style={[styles.statusBadgeText, { color: getSafetyColor(userData.safetyScore) }]}>
-            {userData.safetyScore >= 80 ? '🛡️ FULLY PROTECTED' : 
-             userData.safetyScore >= 60 ? '⚠️ CAUTION MODE' : '🚨 ALERT STATUS'}
+            {userData.safetyScore >= 80 ? '🛡️ FULLY PROTECTED' :
+              userData.safetyScore >= 60 ? '⚠️ CAUTION MODE' : '🚨 ALERT STATUS'}
           </Text>
         </View>
-        
+
         <Text style={[styles.safetyDescription, { color: theme.colors.textSecondary }]}>
           Real-time analysis of 50+ safety parameters including location, weather, crowd density, and local security status
         </Text>
@@ -511,10 +814,9 @@ export default function Dashboard({ userData, isDark = false, navigation }: Dash
     );
   };
 
-  const renderSOSButton = () => (
+  const renderPremiumSOSButton = () => (
     <View style={styles.sosContainer}>
       <View style={styles.sosButtonContainer}>
-        {/* Pulse rings */}
         {!sosPressed && [1, 2, 3].map(i => (
           <Animated.View
             key={i}
@@ -522,64 +824,84 @@ export default function Dashboard({ userData, isDark = false, navigation }: Dash
               styles.sosPulseRing,
               {
                 borderColor: `${theme.colors.error}30`,
-                transform: [{
-                  scale: pulseAnim.interpolate({
-                    inputRange: [1, 1.1],
-                    outputRange: [1 + (i * 0.2), 1.4 + (i * 0.2)],
-                  })
-                }],
+                transform: [
+                  {
+                    scale: pulseAnim.interpolate({
+                      inputRange: [1, 1.15],
+                      outputRange: [1 + i * 0.2, 1.4 + i * 0.2],
+                    }),
+                  },
+                ],
                 opacity: pulseAnim.interpolate({
-                  inputRange: [1, 1.1],
+                  inputRange: [1, 1.15],
                   outputRange: [0.6, 0],
                 }),
-              }
+              },
             ]}
           />
         ))}
-        
+
         <TouchableOpacity
           style={[styles.sosButton, { opacity: sosPressed ? 0.8 : 1 }]}
           onPress={handleSOSPress}
           disabled={isLoading}
           activeOpacity={0.8}
         >
-          <LinearGradient
-            colors={[theme.colors.error, '#DC2626', '#B91C1C']}
-            style={styles.sosGradient}
-          >
-            {/* Inner glow layers */}
+          <LinearGradient colors={[theme.colors.error, '#DC2626', '#B91C1C']} style={styles.sosGradient}>
             <View style={styles.sosGlow1} />
             <View style={styles.sosGlow2} />
-            
-            <Animated.View 
+
+            <Animated.View
               style={[
                 styles.sosContent,
                 {
-                  transform: [{
-                    scale: sosPressed ? sosAnim.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [1, 1.3],
-                    }) : 1
-                  }]
-                }
+                  transform: [
+                    {
+                      scale: sosPressed
+                        ? sosAnim.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [1, 1.3],
+                        })
+                        : 1,
+                    },
+                  ],
+                },
               ]}
             >
               {isLoading ? (
                 <Animated.View
                   style={{
-                    transform: [{
-                      rotate: pulseAnim.interpolate({
-                        inputRange: [1, 1.1],
-                        outputRange: ['0deg', '360deg'],
-                      })
-                    }]
+                    transform: [
+                      {
+                        rotate: pulseAnim.interpolate({
+                          inputRange: [1, 1.15],
+                          outputRange: ['0deg', '360deg'],
+                        }),
+                      },
+                    ],
                   }}
                 >
                   <Ionicons name="refresh" size={56} color="#FFFFFF" />
                 </Animated.View>
               ) : (
                 <>
-                  <Ionicons name="warning" size={56} color="#FFFFFF" />
+                  <Animated.View
+                    style={{
+                      transform: [
+                        {
+                          rotate: sosPressed
+                            ? sosAnim.interpolate({
+                              inputRange: [0, 1],
+                              outputRange: ['0deg', '15deg'],
+                            })
+                            : '0deg',
+                        },
+                        { scale: pulseAnim },
+                      ],
+                    }}
+                  >
+                    <Ionicons name="warning" size={56} color="#FFFFFF" />
+                  </Animated.View>
                   <Text style={styles.sosText}>SOS</Text>
                   <Text style={styles.sosSubtext}>EMERGENCY</Text>
                 </>
@@ -588,7 +910,7 @@ export default function Dashboard({ userData, isDark = false, navigation }: Dash
           </LinearGradient>
         </TouchableOpacity>
       </View>
-      
+
       <View style={styles.sosInfo}>
         <Text style={[styles.sosInfoText, { color: theme.colors.textSecondary }]}>
           <Ionicons name="flash" size={14} color={theme.colors.error} />
@@ -601,13 +923,26 @@ export default function Dashboard({ userData, isDark = false, navigation }: Dash
     </View>
   );
 
-  const renderQuickActions = () => (
+  const renderEnhancedQuickActions = () => (
     <View style={styles.quickActionsContainer}>
       <View style={styles.quickActionsHeader}>
         <Text style={[styles.quickActionsTitle, { color: theme.colors.text }]}>Quick Actions</Text>
-        <Ionicons name="flash" size={22} color={theme.colors.primary} />
+        <Animated.View
+          style={{
+            transform: [
+              {
+                rotate: sparkleRotateAnim.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: ['0deg', '15deg'],
+                }),
+              },
+            ],
+          }}
+        >
+          <Ionicons name="flash" size={22} color={theme.colors.primary} />
+        </Animated.View>
       </View>
-      
+
       <View style={styles.quickActionsGrid}>
         {quickActions.map((action, index) => (
           <TouchableOpacity
@@ -616,14 +951,42 @@ export default function Dashboard({ userData, isDark = false, navigation }: Dash
             onPress={() => handleQuickAction(action.route)}
             activeOpacity={0.8}
           >
-            <LinearGradient
-              colors={action.colors}
-              style={styles.quickActionGradient}
-            >
+            <LinearGradient colors={action.gradientColors} style={styles.quickActionGradient}>
+              <Animated.View
+                style={[
+                  styles.quickActionShimmer,
+                  {
+                    transform: [
+                      {
+                        translateX: shimmerAnim.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [-100, 100],
+                        }),
+                      },
+                    ],
+                  },
+                ]}
+              />
               <View style={styles.quickActionIconContainer}>
-                <Ionicons name={action.icon as any} size={36} color="#FFFFFF" />
+                <Animated.View
+                  style={{
+                    transform: [
+                      {
+                        scale: pulseAnim.interpolate({
+                          inputRange: [1, 1.15],
+                          outputRange: [1, 1.1],
+                        }),
+                      },
+                    ],
+                  }}
+                >
+                  <Ionicons name={action.icon as any} size={36} color="#FFFFFF" />
+                </Animated.View>
               </View>
               <Text style={styles.quickActionText}>{action.label}</Text>
+
+              <View style={styles.quickActionAccent} />
+              <View style={styles.quickActionHighlight} />
             </LinearGradient>
           </TouchableOpacity>
         ))}
@@ -631,71 +994,232 @@ export default function Dashboard({ userData, isDark = false, navigation }: Dash
     </View>
   );
 
-  const renderStatusCards = () => (
+  const renderPremiumStatusCards = () => (
     <View style={styles.statusCardsContainer}>
       <View style={[styles.statusCard, { backgroundColor: theme.colors.surface }]}>
-        <Ionicons name="time" size={28} color={theme.colors.primary} />
+        <Animated.View
+          style={[
+            styles.statusCardShimmer,
+            {
+              transform: [
+                {
+                  translateX: shimmerAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [-100, 100],
+                  }),
+                },
+              ],
+            },
+          ]}
+        />
+        <Animated.View
+          style={{
+            transform: [
+              {
+                rotate: sparkleRotateAnim.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: ['0deg', '360deg'],
+                }),
+              },
+            ],
+          }}
+        >
+          <Ionicons name="time" size={28} color={theme.colors.primary} />
+        </Animated.View>
         <Text style={[styles.statusCardLabel, { color: theme.colors.textSecondary }]}>Trip Progress</Text>
         <Text style={[styles.statusCardValue, { color: theme.colors.text }]}>Day 3</Text>
         <Text style={[styles.statusCardSubvalue, { color: theme.colors.textSecondary }]}>of 14 days</Text>
         <View style={[styles.progressBarSmall, { backgroundColor: theme.colors.surfaceVariant }]}>
-          <View style={[styles.progressFillSmall, { width: '21%', backgroundColor: theme.colors.primary }]} />
+          <Animated.View
+            style={[
+              styles.progressFillSmall,
+              {
+                width: progressAnim.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: ['0%', '100%'],
+                }),
+                backgroundColor: theme.colors.primary,
+              },
+            ]}
+          >
+            <Animated.View
+              style={[
+                styles.progressShimmerSmall,
+                {
+                  transform: [
+                    {
+                      translateX: shimmerAnim.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [-50, 50],
+                      }),
+                    },
+                  ],
+                },
+              ]}
+            />
+          </Animated.View>
         </View>
       </View>
-      
+
       <View style={[styles.statusCard, { backgroundColor: theme.colors.surface }]}>
-        <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
+        <Animated.View
+          style={[
+            styles.statusCardShimmer,
+            {
+              transform: [
+                {
+                  translateX: shimmerAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [-100, 100],
+                  }),
+                },
+              ],
+            },
+          ]}
+        />
+        <Animated.View style={{ transform: [{ scale: guardianPulseAnim }] }}>
           <Ionicons name="shield-checkmark" size={28} color={theme.colors.success} />
         </Animated.View>
         <Text style={[styles.statusCardLabel, { color: theme.colors.textSecondary }]}>Guardian Status</Text>
         <Text style={[styles.statusCardValue, { color: theme.colors.success }]}>Active</Text>
         <View style={styles.guardianStatus}>
-          <View style={[styles.guardianDot, { backgroundColor: theme.colors.success }]} />
+          <Animated.View
+            style={[
+              styles.guardianDot,
+              { backgroundColor: theme.colors.success, transform: [{ scale: pulseAnim }] },
+            ]}
+          />
           <Text style={[styles.guardianText, { color: theme.colors.success }]}>24/7 PROTECTED</Text>
         </View>
-        <View style={[styles.guardianBar, { backgroundColor: theme.colors.success }]} />
+        <View style={[styles.guardianBar, { backgroundColor: theme.colors.success }]}>
+          <Animated.View
+            style={[
+              styles.guardianBarShimmer,
+              {
+                transform: [
+                  {
+                    translateX: shimmerAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [-50, 50],
+                    }),
+                  },
+                ],
+              },
+            ]}
+          />
+        </View>
       </View>
     </View>
   );
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <StatusBar 
-        barStyle={isDark ? 'light-content' : 'dark-content'} 
-        backgroundColor={theme.colors.background} 
-      />
-      
-      {/* Background Elements */}
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={theme.colors.background} />
+
       <View style={styles.backgroundElements}>
-        <Animated.View 
+        <Animated.View
           style={[
-            styles.backgroundGradient1, 
-            { 
+            styles.backgroundGradient1,
+            {
               backgroundColor: `${theme.colors.primary}05`,
-              transform: [{ scale: pulseAnim }] 
-            }
-          ]} 
+              transform: [
+                { scale: pulseAnim },
+                {
+                  rotate: sparkleRotateAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: ['0deg', '45deg'],
+                  }),
+                },
+              ],
+            },
+          ]}
         />
-        <Animated.View 
+        <Animated.View
           style={[
-            styles.backgroundGradient2, 
-            { 
+            styles.backgroundGradient2,
+            {
               backgroundColor: `${theme.colors.success}03`,
-              transform: [{ scale: locationPulse }] 
-            }
-          ]} 
+              transform: [{ scale: locationPulse }],
+            },
+          ]}
         />
+        <Animated.View
+          style={[
+            styles.backgroundGradient3,
+            {
+              backgroundColor: `${theme.colors.warning}02`,
+              transform: [
+                { scale: pulseAnim },
+                {
+                  translateX: shimmerAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [0, 50],
+                  }),
+                },
+                {
+                  translateY: shimmerAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [0, -30],
+                  }),
+                },
+              ],
+            },
+          ]}
+        />
+        {renderFloatingElements()}
       </View>
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {renderHeader()}
+        {renderEnhancedHeader()}
         {renderBatteryAlert()}
-        {renderLocationCard()}
-        {renderSafetyScore()}
-        {renderSOSButton()}
-        {renderQuickActions()}
-        {renderStatusCards()}
+        {renderPremiumLocationCard()}
+        {renderRevolutionarySafetyScore()}
+        {renderPremiumSOSButton()}
+        {renderEnhancedQuickActions()}
+        {renderPremiumStatusCards()}
       </ScrollView>
+
+      {isLoading && (
+        <Animated.View style={styles.loadingOverlay}>
+          <BlurView intensity={20} style={styles.loadingBlur}>
+            <View style={[styles.loadingContent, { backgroundColor: theme.colors.surface }]}>
+              <Animated.View
+                style={[
+                  styles.loadingShimmer,
+                  {
+                    transform: [
+                      {
+                        translateX: shimmerAnim.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [-100, 100],
+                        }),
+                      },
+                    ],
+                  },
+                ]}
+              />
+              <Animated.View
+                style={{
+                  transform: [
+                    {
+                      rotate: pulseAnim.interpolate({
+                        inputRange: [1, 1.15],
+                        outputRange: ['0deg', '360deg'],
+                      }),
+                    },
+                  ],
+                }}
+              >
+                <View style={styles.loadingSpinner} />
+              </Animated.View>
+              <Text style={[styles.loadingTitle, { color: theme.colors.text }]}>Processing...</Text>
+              <Text style={[styles.loadingSubtitle, { color: theme.colors.textSecondary }]}>
+                Securing your connection
+              </Text>
+            </View>
+          </BlurView>
+        </Animated.View>
+      )}
     </SafeAreaView>
   );
 }
@@ -729,6 +1253,26 @@ const styles = StyleSheet.create({
     borderRadius: 160,
     opacity: 0.1,
   },
+  backgroundGradient3: {
+    position: 'absolute',
+    top: '33%',
+    left: '50%',
+    width: 288,
+    height: 288,
+    borderRadius: 144,
+    marginLeft: -144,
+    opacity: 0.05,
+  },
+  floatingElements: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  floatingElement: {
+    position: 'absolute',
+  },
   scrollView: {
     flex: 1,
   },
@@ -737,11 +1281,23 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255,255,255,0.1)',
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  headerShimmer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(59, 130, 246, 0.03)',
   },
   headerContent: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 16,
+    position: 'relative',
+    zIndex: 10,
   },
   headerLeft: {
     flex: 1,
@@ -807,10 +1363,17 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
+    shadowColor: '#3B82F6',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
   },
   quickStats: {
     flexDirection: 'row',
     gap: 16,
+    position: 'relative',
+    zIndex: 10,
   },
   statBadge: {
     flexDirection: 'row',
@@ -818,6 +1381,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 12,
+    backdropFilter: 'blur(10px)',
   },
   statText: {
     fontSize: 14,
@@ -833,11 +1397,23 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 16,
     borderWidth: 2,
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  batteryShimmer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(245, 158, 11, 0.05)',
   },
   batteryAlertContent: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
+    position: 'relative',
+    zIndex: 10,
   },
   batteryAlertText: {
     fontSize: 14,
@@ -849,15 +1425,27 @@ const styles = StyleSheet.create({
     marginVertical: 16,
     borderRadius: 24,
     padding: 20,
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
+    elevation: 8,
+    shadowColor: '#3B82F6',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  locationShimmer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(59, 130, 246, 0.05)',
   },
   locationContent: {
     flexDirection: 'row',
     alignItems: 'center',
+    position: 'relative',
+    zIndex: 10,
   },
   locationIconContainer: {
     position: 'relative',
@@ -870,6 +1458,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 10,
+    elevation: 4,
   },
   pulseRing: {
     position: 'absolute',
@@ -927,16 +1516,28 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     padding: 24,
     alignItems: 'center',
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
+    elevation: 12,
+    shadowColor: '#3B82F6',
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.2,
+    shadowRadius: 24,
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  safetyScoreShimmer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(59, 130, 246, 0.03)',
   },
   safetyHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 24,
+    position: 'relative',
+    zIndex: 10,
   },
   safetyTitle: {
     fontSize: 20,
@@ -946,6 +1547,8 @@ const styles = StyleSheet.create({
   scoreContainer: {
     alignItems: 'center',
     marginBottom: 24,
+    position: 'relative',
+    zIndex: 10,
   },
   scoreCircleContainer: {
     position: 'relative',
@@ -999,6 +1602,8 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 16,
     marginBottom: 16,
+    position: 'relative',
+    zIndex: 10,
   },
   statusBadgeText: {
     fontSize: 14,
@@ -1010,6 +1615,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 20,
     paddingHorizontal: 16,
+    position: 'relative',
+    zIndex: 10,
   },
   sosContainer: {
     alignItems: 'center',
@@ -1033,6 +1640,11 @@ const styles = StyleSheet.create({
     height: 160,
     borderRadius: 80,
     overflow: 'hidden',
+    elevation: 20,
+    shadowColor: '#EF4444',
+    shadowOffset: { width: 0, height: 20 },
+    shadowOpacity: 0.4,
+    shadowRadius: 40,
   },
   sosGradient: {
     flex: 1,
@@ -1113,12 +1725,26 @@ const styles = StyleSheet.create({
     height: 120,
     borderRadius: 24,
     overflow: 'hidden',
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
   },
   quickActionGradient: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     paddingVertical: 20,
+    position: 'relative',
+  },
+  quickActionShimmer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255,255,255,0.2)',
   },
   quickActionIconContainer: {
     marginBottom: 12,
@@ -1128,6 +1754,27 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     textAlign: 'center',
+    position: 'relative',
+    zIndex: 10,
+  },
+  quickActionAccent: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    width: 48,
+    height: 48,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderBottomLeftRadius: 16,
+  },
+  quickActionHighlight: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 4,
+    backgroundColor: 'rgba(255,255,255,0.3)',
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
   },
   statusCardsContainer: {
     flexDirection: 'row',
@@ -1140,40 +1787,70 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 20,
     alignItems: 'center',
-    elevation: 2,
+    elevation: 6,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
+    shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowRadius: 12,
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  statusCardShimmer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(59, 130, 246, 0.03)',
   },
   statusCardLabel: {
     fontSize: 12,
     marginTop: 12,
     marginBottom: 8,
+    position: 'relative',
+    zIndex: 10,
   },
   statusCardValue: {
     fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 4,
+    position: 'relative',
+    zIndex: 10,
   },
   statusCardSubvalue: {
     fontSize: 12,
     marginBottom: 12,
+    position: 'relative',
+    zIndex: 10,
   },
   progressBarSmall: {
     width: '100%',
     height: 8,
     borderRadius: 4,
     overflow: 'hidden',
+    position: 'relative',
+    zIndex: 10,
   },
   progressFillSmall: {
     height: '100%',
     borderRadius: 4,
+    position: 'relative',
+    width: '21%',
+  },
+  progressShimmerSmall: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255,255,255,0.3)',
   },
   guardianStatus: {
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 8,
+    position: 'relative',
+    zIndex: 10,
   },
   guardianDot: {
     width: 8,
@@ -1190,5 +1867,67 @@ const styles = StyleSheet.create({
     height: 4,
     borderRadius: 2,
     marginTop: 12,
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  guardianBarShimmer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255,255,255,0.3)',
+  },
+  loadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+  },
+  loadingBlur: {
+    flex: 1,
+    width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingContent: {
+    borderRadius: 24,
+    padding: 32,
+    alignItems: 'center',
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  loadingShimmer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+  },
+  loadingSpinner: {
+    width: 64,
+    height: 64,
+    borderWidth: 4,
+    borderColor: '#3B82F6',
+    borderTopColor: 'transparent',
+    borderRadius: 32,
+    marginBottom: 16,
+  },
+  loadingTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 8,
+    position: 'relative',
+    zIndex: 10,
+  },
+  loadingSubtitle: {
+    fontSize: 14,
+    position: 'relative',
+    zIndex: 10,
   },
 });

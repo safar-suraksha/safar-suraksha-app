@@ -1,7 +1,5 @@
-"use client"
-
-import React from "react"
-import { useState, useRef, useEffect } from "react"
+import React from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -13,40 +11,41 @@ import {
   Dimensions,
   KeyboardAvoidingView,
   Platform,
-} from "react-native"
-import { SafeAreaView } from "react-native-safe-area-context"
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../navigation/AppNavigator';
 
 interface Message {
-  id: string
-  type: "user" | "bot"
-  content: string
-  timestamp: Date
+  id: string;
+  type: "user" | "bot";
+  content: string;
+  timestamp: Date;
 }
 
-interface ChatSupportScreenProps {
-  userData: any
-  onBack: () => void
-}
+// Props type for ChatSupportScreen with route params
+type ChatSupportScreenProps = NativeStackScreenProps<RootStackParamList, 'ChatSupport'>;
 
-const { width } = Dimensions.get("window")
+const { width } = Dimensions.get("window");
 
-export function ChatSupportScreen({ userData, onBack }: ChatSupportScreenProps) {
+export default function ChatSupportScreen({ route, navigation }: ChatSupportScreenProps) {
+  const { userData } = route.params;
+  
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
       type: "bot",
-      content: `Hello ${userData.fullName}! I'm your AI Safety Assistant. I'm here to help you stay safe during your travels in India. How can I assist you today?`,
+      content: `Hello ${userData?.fullName}! I'm your AI Safety Assistant. I'm here to help you stay safe during your travels in India. How can I assist you today?`,
       timestamp: new Date(),
     },
-  ])
-  const [inputMessage, setInputMessage] = useState("")
-  const [isTyping, setIsTyping] = useState(false)
-  const scrollViewRef = useRef<ScrollView>(null)
-  const pulseAnim = useRef(new Animated.Value(1)).current
-  const typingAnim = useRef(new Animated.Value(0)).current
+  ]);
+  const [inputMessage, setInputMessage] = useState("");
+  const [isTyping, setIsTyping] = useState(false);
+  const scrollViewRef = useRef<ScrollView>(null);
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+  const typingAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    // Pulse animation for online indicator
     Animated.loop(
       Animated.sequence([
         Animated.timing(pulseAnim, {
@@ -60,8 +59,8 @@ export function ChatSupportScreen({ userData, onBack }: ChatSupportScreenProps) 
           useNativeDriver: true,
         }),
       ]),
-    ).start()
-  }, [])
+    ).start();
+  });
 
   useEffect(() => {
     if (isTyping) {
@@ -78,50 +77,50 @@ export function ChatSupportScreen({ userData, onBack }: ChatSupportScreenProps) 
             useNativeDriver: true,
           }),
         ]),
-      ).start()
+      ).start();
     } else {
-      typingAnim.stopAnimation()
+      typingAnim.stopAnimation();
     }
-  }, [isTyping])
+  });
 
   const quickReplies = [
     { text: "Safety tips for my location", action: "safety-tips" },
     { text: "Report suspicious activity", action: "report" },
     { text: "Find nearest hospital", action: "hospital" },
     { text: "Emergency contacts", action: "emergency" },
-  ]
+  ];
 
   const getBotResponse = (message: string): string => {
-    const lowerMessage = message.toLowerCase()
+    const lowerMessage = message.toLowerCase();
 
     if (lowerMessage.includes("safety") || lowerMessage.includes("safe")) {
-      return `Here are safety tips for ${userData.currentLocation}:\n\n• Stay in well-lit, populated areas\n• Keep important documents secured\n• Share your location with emergency contacts\n• Trust your instincts and avoid risky situations\n• Use registered taxis/ride services\n\nWould you like specific information about any area?`
+      return `Here are safety tips for ${userData.currentLocation}:\n\n• Stay in well-lit, populated areas\n• Keep important documents secured\n• Share your location with emergency contacts\n• Trust your instincts and avoid risky situations\n• Use registered taxis/ride services\n\nWould you like specific information about any area?`;
     }
 
     if (lowerMessage.includes("emergency") || lowerMessage.includes("help")) {
-      return `In case of emergency:\n\n🚨 Tourist Helpline: 1363\n🚓 Police: 100\n🏥 Medical: 108\n🔥 Fire: 101\n\nYour current location (${userData.currentLocation}) has been noted. Should I connect you with emergency services?`
+      return `In case of emergency:\n\n🚨 Tourist Helpline: 1363\n🚓 Police: 100\n🏥 Medical: 108\n🔥 Fire: 101\n\nYour current location (${userData.currentLocation}) has been noted. Should I connect you with emergency services?`;
     }
 
     if (lowerMessage.includes("hospital") || lowerMessage.includes("medical")) {
-      return `Based on your location (${userData.currentLocation}), here are nearby medical facilities:\n\n🏥 AIIMS New Delhi - 2.3 km\n🏥 Max Super Speciality Hospital - 1.8 km\n🏥 Apollo Hospital - 3.1 km\n\nFor medical emergencies, call 108. Would you like directions to any of these?`
+      return `Based on your location (${userData.currentLocation}), here are nearby medical facilities:\n\n🏥 AIIMS New Delhi - 2.3 km\n🏥 Max Super Speciality Hospital - 1.8 km\n🏥 Apollo Hospital - 3.1 km\n\nFor medical emergencies, call 108. Would you like directions to any of these?`;
     }
 
-    return `I understand you're asking about "${message}". I'm here to help with:\n\n• Safety tips & local information\n• Emergency assistance\n• Reporting issues\n• Transportation guidance\n• Medical facility locations\n\nCould you be more specific about what you need help with?`
-  }
+    return `I understand you're asking about "${message}". I'm here to help with:\n\n• Safety tips & local information\n• Emergency assistance\n• Reporting issues\n• Transportation guidance\n• Medical facility locations\n\nCould you be more specific about what you need help with?`;
+  };
 
   const handleSendMessage = async () => {
-    if (!inputMessage.trim()) return
+    if (!inputMessage.trim()) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
       type: "user",
       content: inputMessage,
       timestamp: new Date(),
-    }
+    };
 
-    setMessages((prev) => [...prev, userMessage])
-    setInputMessage("")
-    setIsTyping(true)
+    setMessages((prev) => [...prev, userMessage]);
+    setInputMessage("");
+    setIsTyping(true);
 
     setTimeout(() => {
       const botResponse: Message = {
@@ -129,33 +128,37 @@ export function ChatSupportScreen({ userData, onBack }: ChatSupportScreenProps) 
         type: "bot",
         content: getBotResponse(inputMessage),
         timestamp: new Date(),
-      }
+      };
 
-      setMessages((prev) => [...prev, botResponse])
-      setIsTyping(false)
-    }, 1500)
-  }
+      setMessages((prev) => [...prev, botResponse]);
+      setIsTyping(false);
+    }, 1500);
+  };
 
   const handleQuickReply = (reply: { text: string; action: string }) => {
-    setInputMessage(reply.text)
+    setInputMessage(reply.text);
     setTimeout(() => {
-      handleSendMessage()
-    }, 100)
-  }
+      handleSendMessage();
+    }, 100);
+  };
+
+  const handleBack = () => {
+    navigation.goBack();
+  };
 
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString("en-US", {
       hour: "2-digit",
       minute: "2-digit",
-    })
-  }
+    });
+  };
 
   return (
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === "ios" ? "padding" : "height"}>
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={onBack} style={styles.backButton}>
+          <TouchableOpacity onPress={handleBack} style={styles.backButton}>
             <Text style={styles.backIcon}>←</Text>
           </TouchableOpacity>
           <View style={styles.headerContent}>
@@ -273,7 +276,7 @@ export function ChatSupportScreen({ userData, onBack }: ChatSupportScreenProps) 
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
@@ -344,45 +347,64 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   messagesContent: {
-    padding: 16,
+    padding: 8,
+    paddingBottom: 32,
   },
   messageWrapper: {
-    marginBottom: 16,
+    marginBottom: 8,
+    paddingHorizontal: 8,
+    alignItems: "flex-start", // This allows dynamic width
   },
   userMessageWrapper: {
-    alignItems: "flex-end",
+    alignItems: "flex-end", // Align user messages to right
   },
   botMessageWrapper: {
-    alignItems: "flex-start",
+    alignItems: "flex-start", // Align bot messages to left
   },
   messageBubble: {
-    maxWidth: width * 0.75,
-    paddingHorizontal: 16,
+    // Remove fixed width constraints - let content determine size
+    paddingHorizontal: 12,
     paddingVertical: 8,
-    borderRadius: 16,
+    borderRadius: 18,
+    maxWidth: width * 0.75, // Maximum width constraint
+    // No minWidth - let content determine minimum size
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+    // This is key - let the bubble size itself based on content
+    alignSelf: "flex-start",
   },
   userMessage: {
     backgroundColor: "#3B82F6",
+    borderBottomRightRadius: 4,
+    alignSelf: "flex-end", // User messages align to right
   },
   botMessage: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#F8F9FA",
     borderWidth: 1,
     borderColor: "#E5E7EB",
+    borderBottomLeftRadius: 4,
+    alignSelf: "flex-start", // Bot messages align to left
   },
   messageHeader: {
     flexDirection: "row",
     alignItems: "flex-start",
-    marginBottom: 4,
   },
   messageIcon: {
-    fontSize: 16,
-    marginRight: 8,
-    marginTop: 2,
+    fontSize: 14,
+    marginRight: 6,
+    marginTop: 1,
   },
   messageText: {
-    fontSize: 14,
+    fontSize: 15,
     lineHeight: 20,
-    flex: 1,
+    // Remove flex: 1 to allow natural text wrapping
+    flexShrink: 1, // Allow text to shrink and wrap naturally
   },
   userMessageText: {
     color: "#FFFFFF",
@@ -391,24 +413,39 @@ const styles = StyleSheet.create({
     color: "#374151",
   },
   messageFooter: {
+    marginTop: 4,
     alignItems: "flex-end",
+    // Remove fixed padding - let it align naturally
   },
   messageTime: {
-    fontSize: 12,
+    fontSize: 11,
+    fontWeight: "400",
+    marginTop: 2,
   },
   userMessageTime: {
-    color: "rgba(255, 255, 255, 0.6)",
+    color: "rgba(255, 255, 255, 0.7)",
   },
   botMessageTime: {
     color: "#9CA3AF",
   },
   typingBubble: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#F8F9FA",
     borderWidth: 1,
     borderColor: "#E5E7EB",
-    borderRadius: 16,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    borderRadius: 18,
+    borderBottomLeftRadius: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    // Dynamic sizing for typing indicator too
+    alignSelf: "flex-start",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
   },
   typingContent: {
     flexDirection: "row",
@@ -416,23 +453,26 @@ const styles = StyleSheet.create({
   },
   typingDots: {
     flexDirection: "row",
-    marginLeft: 8,
+    marginLeft: 6,
   },
   typingDot: {
-    width: 8,
-    height: 8,
+    width: 6,
+    height: 6,
     backgroundColor: "#9CA3AF",
-    borderRadius: 4,
-    marginHorizontal: 2,
+    borderRadius: 3,
+    marginHorizontal: 1,
   },
   quickRepliesContainer: {
     padding: 16,
-    paddingTop: 0,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: "#F3F4F6",
   },
   quickRepliesTitle: {
-    fontSize: 14,
-    color: "#9CA3AF",
-    marginBottom: 8,
+    fontSize: 13,
+    color: "#6B7280",
+    marginBottom: 10,
+    fontWeight: "500",
   },
   quickRepliesGrid: {
     flexDirection: "row",
@@ -441,13 +481,17 @@ const styles = StyleSheet.create({
   },
   quickReplyButton: {
     backgroundColor: "#F3F4F6",
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
     borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    // Let quick replies also size themselves naturally
   },
   quickReplyText: {
-    fontSize: 14,
+    fontSize: 13,
     color: "#374151",
+    fontWeight: "500",
   },
   inputContainer: {
     backgroundColor: "#FFFFFF",
@@ -458,36 +502,47 @@ const styles = StyleSheet.create({
   inputWrapper: {
     flexDirection: "row",
     alignItems: "flex-end",
-    gap: 8,
+    gap: 10,
+    paddingVertical: 4,
   },
   textInput: {
     flex: 1,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#F8F9FA",
     borderWidth: 1,
     borderColor: "#E5E7EB",
-    borderRadius: 20,
+    borderRadius: 24,
     paddingHorizontal: 16,
-    paddingVertical: 8,
-    fontSize: 16,
+    paddingVertical: 10,
+    fontSize: 15,
     color: "#374151",
     maxHeight: 100,
+    minHeight: 44,
   },
   sendButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: "center",
     justifyContent: "center",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 3,
   },
   sendButtonActive: {
     backgroundColor: "#3B82F6",
   },
   sendButtonInactive: {
-    backgroundColor: "#F3F4F6",
+    backgroundColor: "#E5E7EB",
   },
   sendIcon: {
-    fontSize: 16,
+    fontSize: 18,
     color: "#FFFFFF",
+    marginLeft: 2,
   },
   emergencyBanner: {
     backgroundColor: "#EF4444",
@@ -505,4 +560,4 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     color: "#FFFFFF",
   },
-})
+});

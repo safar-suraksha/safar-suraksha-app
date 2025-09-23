@@ -1,32 +1,30 @@
-"use client"
+import React, { useState, useEffect, useRef } from "react";
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Animated, Alert } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../navigation/AppNavigator';
 
-import React, { useState, useEffect, useRef } from "react"
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Animated, Alert } from "react-native"
-import { SafeAreaView } from "react-native-safe-area-context"
+// Props type for EmergencyCallScreen with route params
+type EmergencyCallScreenProps = NativeStackScreenProps<RootStackParamList, 'EmergencyCall'>;
 
-interface EmergencyCallScreenProps {
-  userData: any
-  onBack: () => void
-  onChatSupport: () => void
-  onReportIssue: () => void
-}
-
-export function EmergencyCallScreen({ userData, onBack, onChatSupport, onReportIssue }: EmergencyCallScreenProps) {
-  const [activeCall, setActiveCall] = useState<string | null>(null)
-  const [callDuration, setCallDuration] = useState(0)
-  const pulseAnim = useRef(new Animated.Value(1)).current
-  const rotateAnim = useRef(new Animated.Value(0)).current
+export default function EmergencyCallScreen({ route, navigation }: EmergencyCallScreenProps) {
+  // Get userData from route params
+  const { userData } = route.params;
+  
+  const [activeCall, setActiveCall] = useState<string | null>(null);
+  const [callDuration, setCallDuration] = useState(0);
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+  const rotateAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    let interval: NodeJS.Timeout
+    let interval:number
     if (activeCall) {
-        //@ts-ignore
       interval = setInterval(() => {
-        setCallDuration((prev) => prev + 1)
-      }, 1000)
+        setCallDuration((prev) => prev + 1);
+      }, 1000);
     }
-    return () => clearInterval(interval)
-  }, [activeCall])
+    return () => clearInterval(interval);
+  }, [activeCall]);
 
   useEffect(() => {
     // Pulse animation for online indicator
@@ -43,7 +41,7 @@ export function EmergencyCallScreen({ userData, onBack, onChatSupport, onReportI
           useNativeDriver: true,
         }),
       ]),
-    ).start()
+    ).start();
 
     // Rotate animation for call button
     Animated.loop(
@@ -52,8 +50,8 @@ export function EmergencyCallScreen({ userData, onBack, onChatSupport, onReportI
         duration: 2000,
         useNativeDriver: true,
       }),
-    ).start()
-  }, [pulseAnim, rotateAnim])
+    ).start();
+  }, [pulseAnim, rotateAnim]);
 
   const emergencyContacts = [
     {
@@ -96,34 +94,46 @@ export function EmergencyCallScreen({ userData, onBack, onChatSupport, onReportI
       color: "#F97316",
       available: true,
     },
-  ]
+  ];
 
   const handleCall = (contact: (typeof emergencyContacts)[0]) => {
-    setActiveCall(contact.id)
-    setCallDuration(0)
-    Alert.alert("Calling", `Calling ${contact.name} at ${contact.number}...`)
+    setActiveCall(contact.id);
+    setCallDuration(0);
+    Alert.alert("Calling", `Calling ${contact.name} at ${contact.number}...`);
 
     // Simulate call duration then end
     setTimeout(() => {
-      setActiveCall(null)
-      setCallDuration(0)
-    }, 5000)
-  }
+      setActiveCall(null);
+      setCallDuration(0);
+    }, 5000);
+  };
 
   const handleEndCall = () => {
-    setActiveCall(null)
-    setCallDuration(0)
-  }
+    setActiveCall(null);
+    setCallDuration(0);
+  };
+
+  const handleBack = () => {
+    navigation.goBack();
+  };
+
+  const handleChatSupport = () => {
+    navigation.navigate('ChatSupport', { userData });
+  };
+
+  const handleReportIssue = () => {
+    navigation.navigate('ReportIssue', { userData });
+  };
 
   const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60)
-    const secs = seconds % 60
-    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`
-  }
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+  };
 
   // If there's an active call, show call interface
   if (activeCall) {
-    const currentContact = emergencyContacts.find((c) => c.id === activeCall)
+    const currentContact = emergencyContacts.find((c) => c.id === activeCall);
 
     return (
       <SafeAreaView style={styles.container}>
@@ -174,14 +184,14 @@ export function EmergencyCallScreen({ userData, onBack, onChatSupport, onReportI
           </View>
         </View>
       </SafeAreaView>
-    )
+    );
   }
 
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={onBack} style={styles.backButton}>
+        <TouchableOpacity onPress={handleBack} style={styles.backButton}>
           <Text style={styles.backIcon}>←</Text>
         </TouchableOpacity>
         <View style={styles.headerContent}>
@@ -240,12 +250,12 @@ export function EmergencyCallScreen({ userData, onBack, onChatSupport, onReportI
           <Text style={styles.sectionTitle}>Quick Actions</Text>
 
           <View style={styles.actionsGrid}>
-            <TouchableOpacity onPress={onChatSupport} style={styles.actionButton}>
+            <TouchableOpacity onPress={handleChatSupport} style={styles.actionButton}>
               <Text style={styles.actionIcon}>💬</Text>
               <Text style={styles.actionText}>Chat Support</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity onPress={onReportIssue} style={styles.actionButtonSecondary}>
+            <TouchableOpacity onPress={handleReportIssue} style={styles.actionButtonSecondary}>
               <Text style={styles.actionIcon}>⚠️</Text>
               <Text style={styles.actionText}>Report Issue</Text>
             </TouchableOpacity>
@@ -259,7 +269,7 @@ export function EmergencyCallScreen({ userData, onBack, onChatSupport, onReportI
             <View style={styles.noticeContent}>
               <Text style={styles.noticeTitle}>Emergency Call Guidelines</Text>
               <View style={styles.noticeList}>
-                <Text style={styles.noticeItem}>• Only call if you're in immediate danger or need urgent help</Text>
+                <Text style={styles.noticeItem}>• Only call if you&apos;re in immediate danger or need urgent help</Text>
                 <Text style={styles.noticeItem}>• Stay calm and speak clearly when connected</Text>
                 <Text style={styles.noticeItem}>• Provide your exact location if different from GPS</Text>
                 <Text style={styles.noticeItem}>• Keep your phone charged and accessible</Text>
@@ -284,9 +294,10 @@ export function EmergencyCallScreen({ userData, onBack, onChatSupport, onReportI
         </View>
       </ScrollView>
     </SafeAreaView>
-  )
+  );
 }
 
+// ... (keep all your existing styles exactly as they are)
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -643,4 +654,4 @@ const styles = StyleSheet.create({
     color: "#9CA3AF",
     marginLeft: 8,
   },
-})
+});

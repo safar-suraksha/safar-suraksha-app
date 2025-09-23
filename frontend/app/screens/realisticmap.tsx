@@ -36,7 +36,7 @@ interface MapLocation {
 
 const { width: screenWidth } = Dimensions.get("window")
 
-export function RealisticMap({ height = 320, showUserLocation = true, interactive = true, style }: RealisticMapProps) {
+export default function RealisticMap({ height = 320, showUserLocation = true, interactive = true, style }: RealisticMapProps) {
   const [userLocation, setUserLocation] = useState({ x: 50, y: 60 })
   const [selectedLocation, setSelectedLocation] = useState<string | null>(null)
   const [pulseAnimation] = useState(new Animated.Value(0))
