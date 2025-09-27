@@ -47,13 +47,30 @@ Safar Suraksha is a **real-time tourist safety monitoring system** that ensures 
 
 ## 5. Project Structure  
 
+```
 safar-suraksha/
-├── mobile/ # React Native app
-├── dashboard/ # Police UI
-├── backend/ # APIs + Socket.io
-├── ai-modules/ # AI services
-├── database/ # NoSQL schemas
-└── README.md
+├── backend/                  # Backend services
+│   ├── src/                  # Controllers, routes, services
+│   ├── server.js             # Backend entry point
+│   ├── package.json          # Backend dependencies
+│   ├── pnpm-lock.yaml        # Lock file
+│
+├── frontend/                 # Frontend (React Native / Expo)
+│   ├── app/                  # Screens & navigation
+│   ├── assets/               # Images, icons, fonts
+│   ├── constants/            # App constants (colors, configs)
+│   ├── contexts/             # React contexts (auth, location, etc.)
+│   ├── hooks/                # Custom React hooks
+│   ├── providers/            # Context providers
+│   ├── scripts/              # Utility scripts
+│   ├── tsconfig.json         # TypeScript config
+│   ├── package.json          # Frontend dependencies
+│   ├── package-lock.json     # Lock file
+│
+├── ml/                       # AI/ML modules
+│   └── (speech-to-text, anomaly detection, safety score, etc.)
+│
+```
 
 ---
 
