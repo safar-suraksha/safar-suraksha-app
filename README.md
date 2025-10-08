@@ -91,5 +91,3 @@ safar-suraksha/
 
 ---
 
-## 8. License  
-MIT License 
